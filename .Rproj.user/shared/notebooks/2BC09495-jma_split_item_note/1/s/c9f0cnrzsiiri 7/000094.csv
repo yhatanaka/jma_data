@@ -1,0 +1,4 @@
+"0","# format(dfPlot2_2$date, ""%m/%d~"")"
+"0","# as.character(dfPlot2_2$data)"
+"0","points(format(dfPlot2_2$date, ""%m/%d~""), as.character(dfPlot2_2$data), type=""b"", pch=pchTypes[1], col=lineCols[1], lty=lineTypes)"
+"2"," 強制変換により NA が生成されました "

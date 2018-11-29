@@ -1,0 +1,573 @@
+---
+title: "気象庁 過去データ処理"
+author: "Y.Hatanaka"
+date: "2018/11/4"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## データ読み込む
+
+試しに，気象庁のサイトの過去データダウンロードから，月ごとのデータをダウンロード。
+
+エディタで見ると（Shift-JIS 注意）…
+
+```
+ダウンロードした時刻：2018/11/04 12:47:36
+
+,酒田,酒田,酒田,酒田,酒田,酒田,酒田,酒田,酒田,酒田,酒田,酒田,酒田
+年月,平均気温(℃),平均気温(℃),平均気温(℃),日最高気温の平均(℃),日最高気温の平均(℃),日最高気温の平均(℃),日最低気温の平均(℃),日最低気温の平均(℃),日最低気温の平均(℃),降水量の合計(mm),降水量の合計(mm),降水量の合計(mm),降水量の合計(mm)
+,,品質情報,均質番号,,品質情報,均質番号,,品質情報,均質番号,,現象なし情報,品質情報,均質番号
+1987/1,1.1,8,1,4.0,8,1,-1.8,8,1,140.5,0,8,1
+1987/2,1.9,8,1,4.9,8,1,-0.9,8,1,115.0,0,8,1
+```
+
+1行目「ダウンロードした…」と2行目（空行），表形式にならないし不要。
+
+3行目以降は
+
+|  | 酒田 | 酒田 | 酒田 | 酒田 | 酒田 | 酒田 | 酒田 | 酒田 | 酒田 | 酒田 | 酒田 | 酒田 | 酒田 |
+| ---- | ---- | ---- | ---- | ---- | ---- | ---- | ---- | ---- | ---- | ---- | ---- | ---- | ---- |
+| 年月 | 平均気温(℃) | 平均気温(℃) | 平均気温(℃) | 日最高気温の平均(℃) | 日最高気温の平均(℃) | 日最高気温の平均(℃) | 日最低気温の平均(℃) | 日最低気温の平均(℃) | 日最低気温の平均(℃) | 降水量の合計(mm) | 降水量の合計(mm) | 降水量の合計(mm) | 降水量の合計(mm) |
+|  |  | 品質情報 | 均質番号 |  | 品質情報 | 均質番号 |  | 品質情報 | 均質番号 |  | 現象なし情報 | 品質情報 | 均質番号 |
+| 1987/1 | 1.1 | 8 | 1 | 4.0 | 8 | 1 | -1.8 | 8 | 1 | 140.5 | 0 | 8 | 1 |
+| 1987/2 | 1.9 | 8 | 1 | 4.9 | 8 | 1 | -0.9 | 8 | 1 | 115.0 | 0 | 8 | 1 |
+
+
+
+```{r jma_data}
+f <- read.table('data.csv',sep=",", skip=1, header=F, fileEncoding = "Shift_JIS")
+head(f)
+```
+
+## 今年の月ごとの平均気温
+今年の平均気温だけ抜き出す。
+まず平均気温の行だけ抜き出す。
+```{r}
+head(f[,2])
+```
+
+年月日忘れた。
+```{r}
+head(f[,c(1,2)])
+```
+
+年月日が2018/ のものだけ。
+```{r}
+f2018 <- subset(f, grepl("2018/", f[,1]))
+head(f2018)
+```
+
+年月日と平均気温のとこだけ表示。
+```{r}
+head(f2018[,c(1,2)])
+
+```
+
+
+最初から年月日と平均気温だけ使ってもいいか。
+```{r}
+f2018 <- subset(f, grepl("2018/", f[,1]), c(1,2))
+head(f2018)
+```
+
+グラフにしてみる。
+```{r}
+#plot(f2018[,1], f2018[,2])
+plot(f2018)
+```
+
+なんじゃこりゃ…
+```{r}
+str(f2018)
+```
+
+あー，factor型になってる…
+
+「年月」を，とりあえずその月の1日の，つまり「〜年〜月1日」とする。
+```{r}
+f2018[,1] <- as.Date(paste(f2018[,1], "/1", sep=""))
+str(f2018)
+```
+```{r}
+plot(f2018)
+```
+
+気温とこもfactor型じゃダメか。
+```{r}
+f2018[,2] <- as.numeric(f2018[,2])
+str(f2018)
+```
+
+あー，一度factor型になったら直で numericに変換してもダメか。
+```{r}
+f2018 <- subset(f, grepl("2018/", f[,1]), c(1,2))
+f2018[,1] <- as.Date(paste(f2018[,1], "/1", sep=""))
+f2018[,2] <- as.numeric(as.character(f2018[,2]))
+str(f2018)
+
+```
+
+よさげ。plot してみる。
+```{r}
+plot(f2018)
+
+```
+
+読み込む段階から factor型にしなけりゃちょっと楽かも。
+```{r}
+f <- read.table('data.csv',sep=",", skip=1, header=F, fileEncoding = "Shift_JIS", stringsAsFactors=F)
+f2018 <- subset(f, grepl("2018/", f[,1]), c(1,2))
+f2018[,1] <- as.Date(paste(f2018[,1], "/1", sep=""))
+f2018[,2] <- as.numeric(f2018[,2])
+str(f2018)
+```
+
+線もつけてみる。
+```{r}
+plot(f2018, type="o")
+```
+
+最低気温，最高気温，降水量も欲しければ…
+```{r}
+f2018 <- subset(f, grepl("2018/", f[,1]), c(1,2,5,8,11))
+f2018[,1] <- as.Date(paste(f2018[,1], "/1", sep=""))
+n <- ncol(f2018)
+for (i in 2:n) {
+  f2018[,i] <- as.numeric(f2018[,i])
+}
+str(f2018)
+
+```
+```{r}
+par(family="HiraKakuPro-W3", lty=3, bty="l")
+
+plot(f2018$V1, f2018$V2, type="o", ylim=c(-10,35), col=rgb(0,1,0), pch=1, xlab="月", ylab="気温")
+par(new=T)
+lines(f2018$V1, f2018$V5, type="o", ylim=c(-10,35), col=rgb(1,0,0), pch=2)
+par(new=T)
+lines(f2018$V1, f2018$V8, type="o", ylim=c(-10,35), col=rgb(0,0,1), pch=3)
+#par(new=T)
+#barplot(f2018$V1, f2018$V11)
+#axis(side=4)
+```
+
+
+## 月ごと平均気温の今までの平均
+今までの平均を出す。
+
+…の前に，データの整形。
+
+今回は全部酒田のデータなので， 1行目の「酒田」はじゃま。
+```{r}
+f <- f[ -1,]
+head(f)
+```
+んでもって1行目_2行目を列タイトルにする。
+まず，各列の1行目_2行目を生成する関数作って列タイトル用のベクトルを。
+```{r}
+makeColumnName <- function(dfCol){
+    retCol = dfCol[1]
+  if (dfCol[2] != "") {
+    retCol = paste(retCol,dfCol[2],sep="_")
+  }
+  return(retCol)
+}
+
+colTitle <- apply(f,2,makeColumnName)
+colTitle
+```
+
+「(℃)」「(mm)」「の平均」「の合計」とかじゃま。
+
+要らんとことる関数作ってmakeColumnNameに挟む。
+```{r}
+removeCharFromTitle1 <- function(string){
+  return(gsub("(\\(.+\\))|(の.+)", "", string))
+}
+
+removeCharFromTitle2 <- function(string){
+  return(gsub("(情報)|(番号)", "", string))
+}
+
+makeColumnName <- function(dfCol){
+    retCol = removeCharFromTitle1(dfCol[1])
+  if (dfCol[2] != "") {
+    retCol = paste(retCol,removeCharFromTitle2(dfCol[2]),sep="_")
+  }
+  return(retCol)
+}
+
+colTitle <- apply(f,2,makeColumnName)
+colTitle
+
+```
+
+タイトルに設定。
+```{r}
+colnames(f) <- colTitle
+head(f)
+```
+
+1,2行目削除。
+```{r}
+f <- f[-1:-2,]
+head(f)
+```
+
+「年/月」を，その月の1日の日付型に。
+```{r}
+f[,1] <- as.Date(paste(f[,1], "/1", sep=""))
+
+```
+
+年月日のとこの"XXXX/1", "XXXX/2" ごと，要するに月ごとに今までのデータまとめる。
+
+"年/月" の月の部分，"month"の列にfactor型で入れる。
+```{r}
+monthLabel <- function(x){
+    return(format(x, "%m"))
+}
+
+f$month <- as.factor(sapply(f$年月, monthLabel))
+str(f)
+#head(sapply(f$年月, monthLabel))
+```
+
+「_」でつないだとこ（品質情報，均質番号，現象なし）はfactor型に。
+
+「_」でつないだ列を返す関数作ってとりあえず泥臭く for で回す。
+```{r}
+combinedColumn <- function(df) {
+    return(grepl(".+_.+", colnames(df)))
+}
+
+for (i in which(combinedColumn(f))) {
+    f[,i] <- as.factor(f[,i])
+}
+str(f)
+```
+
+「平均気温」「日最高気温」「降水量」などのデータ部分(colnames が「年月」「month」以外で，しかも「_」ない)の列吐き出す関数作って，その列は numeric型に変換。
+```{r}
+dataColumn <- function(df) {
+  dataFlag1 = !grepl("(.+_.+)", colnames(df))
+  dataFlag2 = !grepl("(年月)|(month)", colnames(df)) 
+  return( as.logical(dataFlag1*dataFlag2) )
+}
+
+for (i in which(dataColumn(f))) {
+    f[,i] <- as.numeric(f[,i])
+}
+str(f)
+```
+
+ちなみに項目名。
+```{r}
+colnames(f)[dataColumn(f)]
+
+```
+
+ついでに年月。
+```{r}
+paste(format(min(f$年月), "%Y/%m"), format(max(f$年月), "%Y/%m"), sep = " 〜 ")
+```
+
+
+これで基本の準備はOK。
+
+試しに，平均気温のヒストグラム。
+```{r}
+#f[,2]
+par(family="HiraKakuPro-W3", bty="l")
+hist(f$平均気温)
+```
+
+ヘェ〜山型じゃないんだ。
+
+各月(f\$month)の平均気温(f\$平均気温)の，今までの平均(mean)。
+```{r include=F}
+avrTempByMonth1 <- aggregate(x=f[c("平均気温")], by=list(f$month), FUN=mean)
+avrTempByMonth <- avrTempByMonth1$平均気温
+names(avrTempByMonth) <- avrTempByMonth1$Group.1
+```
+```{r}
+avrTempByMonth <- tapply(f$平均気温, f$month, mean)
+avrTempByMonth
+
+```
+
+グラフに。
+```{r}
+#par(family="HiraKakuPro-W3", bty="l")
+
+barplot(avrTempByMonth)
+
+#par(new=T)
+#lines(f2018$V1, f2018$V5, type="o", ylim=c(-10,35), col=rgb(1,0,0), pch=2)
+#par(new=T)
+#lines(f2018$V1, f2018$V8, type="o", ylim=c(-10,35), col=rgb(0,0,1), pch=3)
+
+```
+
+
+
+エラーバーで分散(標準偏差)もつける時はこう。
+```{r}
+varTempByMonth1 <- tapply(f$平均気温, f$month, sd)
+bp <- barplot(avrTempByMonth, ylim = c(0, max(avrTempByMonth + varTempByMonth1)))
+
+arrows(bp, avrTempByMonth - varTempByMonth1, bp, avrTempByMonth + varTempByMonth1, code = 3, lwd = 1, angle = 90, length = 0.1)
+```
+
+2018年の平均気温に，過去の分の標準偏差(エラーバー)つけると
+```{r}
+f2018 <- subset(f, grepl("2018", format(f$年月, "%Y")))
+plot(f2018[,c("month","平均気温")], type="o", ylim=c(-10,35), col=rgb(0,0.7,0), pch=1, xlab="月", ylab="気温")
+arrows(c(1:12), avrTempByMonth - varTempByMonth1, c(1:12), avrTempByMonth + varTempByMonth1, code = 3, lwd = 1, angle = 90, length = 0.1, ylim=c(-10,35), lty=1, col=rgb(0,0.7,0))
+
+```
+
+わからいでもないが，やっぱ変。
+```{r}
+f2018[,c("month","平均気温")]
+```
+
+11・12月がないからエラーバーの方とデータの数が合わない。
+
+ないなら付け足す。とりあえず必要な分だけピックアップして…
+```{r}
+#f2018 <- subset(f, grepl("2018", format(f$年月, "%Y")))
+pickData <- function(df, itemName) {
+  return(df[,c("month", itemName)])
+}
+
+f2018avrtmp <- pickData(f2018, "平均気温")
+f2018avrtmp
+```
+
+
+```{r}
+f2018month <- as.numeric(f2018avrtmp$month)
+max(f2018month)
+```
+
+ということで，これ+1から12までのベクトル作る。
+```{r}
+addingMonthNum = (max(f2018month)+1):12
+addingMonthNum
+```
+
+このままだと数字なんで，これを 0 paddingした文字列に直す。
+```{r}
+addingMonthString <- sprintf("%02d", addingMonthNum)
+addingMonthString
+```
+
+…2桁だとわからんから関数作ってテスト。
+```{r}
+paddingString <- function(numVec){
+  addingMonthNum <- (max(numVec)+1):12
+  addingMonthString <- sprintf("%02d", addingMonthNum)
+  return(addingMonthString)
+}
+
+paddingString(1:8)
+```
+
+大丈夫そう。ここまでをまとめると
+```{r}
+paddingString <- function(numVec){
+  addingMonthNum <- (max(numVec)+1):12
+  addingMonthString <- sprintf("%02d", addingMonthNum)
+  return(addingMonthString)
+}
+
+notYetMonthVec <- function(yearDF){
+  itemDF <- yearDF[,c("month")]
+  itemDFWithNumMonth <- as.numeric(itemDF)
+  notYetMonthStringVec <- paddingString(itemDFWithNumMonth)
+  return(notYetMonthStringVec)
+}
+notYetMonthVec(f2018)
+```
+
+これを付け足す関数。"month","平均気温"の順で取り出してるんで…
+```{r}
+pickData <- function(df, itemName) {
+  return(df[,c("month", itemName)])
+}
+
+f2018avrtmp <- pickData(f2018, "平均気温")
+addRestMonth <- function(monthDataDF, paddinfStringsVec){
+  for (i in paddinfStringsVec) {
+    monthDataDF <- rbind(monthDataDF, c(i,""))
+  }
+  return(monthDataDF)
+}
+
+f2018forPlot <- addRestMonth(f2018avrtmp, notYetMonthVec(f2018))
+f2018forPlot
+```
+
+よし。
+```{r}
+par(family="HiraKakuPro-W3", lty=3, bty="l")
+plot(f2018forPlot, type="o", ylim=c(-10,35), col=rgb(0,0.7,0), pch=1, xlab="月", ylab="気温")
+arrows(c(1:12), avrTempByMonth - varTempByMonth1, c(1:12), avrTempByMonth + varTempByMonth1, code = 3, lwd = 1, angle = 90, length = 0.1, ylim=c(-10,35), lty=1, col=rgb(0,0.7,0))
+
+```
+
+完成形。
+```{r}
+paddingString <- function(numVec){
+  addingMonthNum <- (max(numVec)+1):12
+  addingMonthString <- sprintf("%02d", addingMonthNum)
+  return(addingMonthString)
+}
+
+notYetMonthVec <- function(yearDF){
+  itemDF <- yearDF[,c("month")]
+  if (length(itemDF) < 12){
+  itemDFWithNumMonth <- as.numeric(itemDF)
+  notYetMonthStringVec <- paddingString(itemDFWithNumMonth)
+  return(notYetMonthStringVec)
+  } else {
+    return(c())
+  }
+}
+
+pickData <- function(df, itemName) {
+  return(df[,c("month", itemName)])
+}
+
+addRestMonth <- function(monthDataDF, paddinfStringsVec){
+  for (i in paddinfStringsVec) {
+    monthDataDF <- rbind(monthDataDF, c(i,""))
+  }
+#  monthDataDF[,2] <- as.numeric(monthDataDF[,2])
+  return(monthDataDF)
+}
+
+plotYear <- function(yearDF, itemName){
+  yearDFForPlotTmp <- pickData(yearDF, itemName)
+  yearDFForPlot <- addRestMonth(yearDFForPlotTmp, notYetMonthVec(yearDF))
+  return(yearDFForPlot)
+}
+
+getYearDF <- function(jmaDF, pickedYear){
+  yearDF <- subset(jmaDF, grepl(pickedYear, format(jmaDF$年月, "%Y")))
+#str(yearDF)
+    return(yearDF)
+}
+
+getSDBar <- function(jmaDF, itemName){
+  avrByMonth <- tapply(jmaDF[,c(itemName)], jmaDF$month, mean)
+  sdByMonth <- tapply(jmaDF[,c(itemName)], jmaDF$month, sd)
+  resultSDVec <- list(avrByMonth, sdByMonth)
+  names(resultSDVec) <- c("avr", "sd")
+  return(resultSDVec)
+}
+
+plotDotLine <- function(df, year, itemName) {
+# ある年のある項目のデータ
+  resultDF <- plotYear(getYearDF(df, year), itemName)
+# その項目の，今までの平均値と標準偏差
+  resultSD <- getSDBar(df, itemName)
+# その年の，項目の数字の最大値・最小値(欠損値除く)
+  yDataMin <- min(as.numeric(resultDF[,2]), na.rm = T)
+  yDataMax <- max(as.numeric(resultDF[,2]), na.rm = T)
+# 平均値+標準偏差の最大値
+  ySDMin <- min(resultSD$avr - resultSD$sd, na.rm = T)
+  # 平均値-標準偏差の最小値
+  ySDMax <- max(resultSD$avr + resultSD$sd, na.rm = T)
+
+# その年のと平均値〜と，どっちか大きい/小さい方(ただし最小値は0含む)
+  yMin <- min(yDataMin, ySDMin, 0)
+  yMax <- max(yDataMax, ySDMax)
+  resultVec <- list(data=resultDF[,2], avr=resultSD$avr, sd=resultSD$sd, ylim=c(yMin, yMax), axtxt=paste(itemName, year))
+  return(resultVec)
+}
+
+# example
+pldata <- plotDotLine(f, "2018", "降水量")
+ydata <- pldata$data
+allAvr <- pldata$avr
+allSD <- pldata$sd
+allylim <- pldata$ylim
+axtxt <- pldata$axtxt
+
+par(family = "HiraKakuPro-W3", lty = 3, bty = "l")
+plot(
+  ydata,
+  type = "o",
+  ylim = allylim,
+  col = rgb(0, 0.7, 0),
+  pch = 1,
+  xlab = "月",
+  ylab = axtxt
+)
+arrows(
+  c(1:12),
+  allAvr - allSD,
+  c(1:12),
+  allAvr + allSD,
+  code = 3,
+  lwd = 1,
+  angle = 90,
+  length = 0.1,
+  ylim = allylim,
+  lty = 1,
+  col = rgb(0, 0.7, 0)
+)
+
+
+#c(yDataMin, yDataMax, ySDMin, ySDMax)
+#str(resultDF)
+
+```
+
+散布図
+```{r}
+allData <- plotYear(f, "降水量")
+yMax <- max(allData[,2])
+plot(allData, pch=1, xlim=c(1,12), ylim=c(0,yMax), col="#ffffff")
+par(new=T)
+allData[,1] <- as.numeric(as.character(allData[,1]))
+str(allData)
+plot(allData, pch=15, xlim=c(1,12), ylim=c(0,yMax), col="#00ff0020")
+par(new=T)
+plot(
+  ydata,
+  type = "o",
+  ylim = c(0,yMax),
+  col = rgb(0, 0.7, 0),
+  pch = 1,
+  xlab = "月",
+  ylab = axtxt
+)
+
+```
+
+
+```{r include=F}
+
+
+
+
+par(family="HiraKakuPro-W3", lty=3, bty="l")
+plot(f2018avrtmp[,c("month","平均気温")], type="o", ylim=c(-10,35), col=rgb(0,0.7,0), pch=1, xlab="月", ylab="気温")
+arrows(c(1:12), avrTempByMonth - varTempByMonth1, c(1:12), avrTempByMonth + varTempByMonth1, code = 3, lwd = 1, angle = 90, length = 0.1, ylim=c(-10,35), lty=1, col=rgb(0,0.7,0))
+par(new=T)
+
+#lines(f2018$V1, f2018$V5, type="o", ylim=c(-10,35), col=rgb(1,0,0), pch=2)
+#par(new=T)
+#lines(f2018$V1, f2018$V8, type="o", ylim=c(-10,35), col=rgb(0,0,1), pch=3)
+#arrows(pl, avrTempByMonth - varTempByMonth1, pl, avrTempByMonth + varTempByMonth1, code = 3, lwd = 1, angle = 90, length = 0.1, ylim=c(-10,35))
+
+
+```
+

@@ -1,0 +1,12 @@
+"0","refDate <- dfPlot3[""date""]"
+"0","names(refDate) <- c(""refDate"")"
+"0","refData <- dfPlot3[""data""]"
+"0","names(refData) <- c(""refData"")"
+"0","dfList2 <- data.frame(dfPlot2, refDate, refData)"
+"0","if(dfList2[""data""] == dfList2[""refDate""]){"
+"0","  differ <- dfList2[""redData""] - dfList2[""data""]"
+"0","}"
+"2"," 条件が長さが 2 以上なので、最初の 1 つだけが使われます "
+"0","differ"
+"2"," エラー:  オブジェクト 'differ' がありません 
+"

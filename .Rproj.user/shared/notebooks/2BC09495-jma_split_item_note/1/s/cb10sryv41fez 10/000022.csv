@@ -1,0 +1,6 @@
+"0","differDf <- function(df1row,df2){"
+"0","  thisData <- subset(df2, df2[""date""]==df1row[""date""]]"
+"2"," エラー:  予想外の ']' です  in:
+""differDf <- function(df1row,df2){
+  thisData <- subset(df2, df2[""date""]==df1row[""date""]]""
+"

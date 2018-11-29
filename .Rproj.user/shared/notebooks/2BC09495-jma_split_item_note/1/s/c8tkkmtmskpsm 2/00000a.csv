@@ -1,0 +1,4 @@
+"0","boxplot(dfPlot3$data ~ dfPlot3$date, axes=F, ann=F, xlim=xlimVec, ylim=c(yMin,yMax), notch=T, boxwex=0.1, at=(1:length(dfPlot3$date))-0.2, border=""#ff000066"", col=""#ff000030"")"
+"2"," model.frame.default(formula = dfPlot3$data ~ dfPlot3$date) でエラー: 
+   型 (NULL) は変数 'dfPlot3$data' に対しては不正です 
+"

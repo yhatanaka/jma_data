@@ -1,0 +1,1 @@
+"0","lines(f2018$V1, f2018$V8, type=""o"", ylim=c(-10,35), col=rgb(0,0,1), pch=3)"

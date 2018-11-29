@@ -1,0 +1,9 @@
+"0","differDf <- function(df1row,df2){"
+"0","  thisData <- df2[df2[""date""]==df1row[""date""],data]"
+"0","    df1row[,""differ""] <- thisData"
+"0","  # df1row[,""differ""] <- df1row[""data""] - df2[df2[""date""]==df1row[""date""],""data""]"
+"0","  return(df1row)"
+"0","}"
+"0","dfList3 <- apply(dfPlot2,1,differDf,dfPlot3)"
+"2"," x[j] でエラー:  添え字の型 'closure' が不正です 
+"

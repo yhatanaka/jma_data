@@ -1,0 +1,3 @@
+"0","#par(new=T)"
+"0","#barplot(f2018$V1, f2018$V11)"
+"0","#axis(side=4)"

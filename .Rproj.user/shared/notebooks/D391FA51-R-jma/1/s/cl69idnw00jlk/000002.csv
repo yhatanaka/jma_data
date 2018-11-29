@@ -1,0 +1,22 @@
+"0","dataColumn <- function(df) {
+#  return( grepl(""(.+_.+)|(年月)|(month)"", colnames(df)) )
+  return( !grepl(""(.+_.+)"", colnames(df)) )
+}
+dataColumn(f)
+"
+"1"," [1]"
+"1","  TRUE"
+"1"," FALSE"
+"1","  TRUE"
+"1"," FALSE"
+"1"," FALSE"
+"1","  TRUE"
+"1"," FALSE"
+"1"," FALSE"
+"1","  TRUE"
+"1"," FALSE"
+"1"," FALSE"
+"1"," FALSE"
+"1","  TRUE"
+"1","
+"

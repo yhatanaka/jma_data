@@ -1,0 +1,11 @@
+"0","f <- f[ -1,]
+head
+"
+"1","function (x, ...) 
+"
+"1","UseMethod(""head"")
+"
+"1","<bytecode: 0x107030d78>
+"
+"1","<environment: namespace:utils>
+"

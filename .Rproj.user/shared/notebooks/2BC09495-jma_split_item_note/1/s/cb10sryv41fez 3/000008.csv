@@ -1,0 +1,8 @@
+"0","differDf <- function(df1row){"
+"0","  # theDate <- df1row$date"
+"0","  # df1row[,""differ""] <- df1row$data - df2[df2$date==df1row$date,]"
+"0","  return(df1row$date)"
+"0","}"
+"0","dfList3 <- lapply(dfPlot2,differDf)"
+"2"," df1row$date でエラー: $ operator is invalid for atomic vectors
+"

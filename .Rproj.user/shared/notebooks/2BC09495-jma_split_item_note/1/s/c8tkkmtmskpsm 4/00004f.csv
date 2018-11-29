@@ -1,0 +1,4 @@
+"0","points(dfPlot2_3$month, as.character(dfPlot2_3$data), type=""b"", pch=pchTypes[2], col=lineCols[2], lty=lineTypes)"
+"2"," points(dfPlot2_3$month, as.character(dfPlot2_3$data), type = ""b"",  でエラー: 
+   オブジェクト 'dfPlot2_3' がありません 
+"

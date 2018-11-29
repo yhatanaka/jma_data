@@ -1,0 +1,2 @@
+"0","# plot(dfPlot2_2$date, dfPlot2_2$data, ylim=c(yMin,yMax), type=""b"", pch=pchTypes[1], col=lineCols[1], lty=lineTypes)"
+"0","# points(dfPlot3_2$date, as.character(dfPlot3_2$data), xlim=xlimVec, ylim=c(yMin,yMax), type=""b"", pch=pchTypes[2], col=lineCols[2], lty=lineTypes)"

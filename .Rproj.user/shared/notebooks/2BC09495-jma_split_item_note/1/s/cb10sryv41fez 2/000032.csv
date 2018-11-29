@@ -1,0 +1,8 @@
+"0","differDf <- function(df1row,df2){"
+"0","  thisData <- subset(df2, date==df1row[""date""])"
+"0","  df1row[""result""] <- thisData[""data""]"
+"0","  retun(result)"
+"0","}"
+"0","testmat <- apply(dfPlot2,1,differDf,dfPlot3)"
+"2"," retun(result) でエラー:  関数 ""retun"" を見つけることができませんでした 
+"

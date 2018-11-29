@@ -1,0 +1,25 @@
+{
+    "collab_server" : "",
+    "contents" : "",
+    "created" : 1541985908301.000,
+    "dirty" : false,
+    "encoding" : "UTF-8",
+    "folds" : "",
+    "hash" : "4047791194",
+    "id" : "E635BEEC",
+    "lastKnownWriteTime" : 1542184334,
+    "last_content_update" : 1542184334364,
+    "path" : "~/Documents/jma_data/jma_split_item_note.Rmd",
+    "project_path" : "jma_split_item_note.Rmd",
+    "properties" : {
+        "chunk_output_type" : "inline",
+        "cursorPosition" : "254,141",
+        "docOutlineVisible" : "0",
+        "scrollLine" : "240",
+        "tempName" : "Untitled1"
+    },
+    "relative_order" : 3,
+    "source_on_save" : false,
+    "source_window" : "",
+    "type" : "r_markdown"
+}

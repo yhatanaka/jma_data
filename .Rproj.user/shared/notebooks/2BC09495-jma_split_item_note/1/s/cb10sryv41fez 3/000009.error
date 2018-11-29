@@ -1,0 +1,1 @@
+{"frames":[{"character_number":0,"end_character_number":0,"end_line_number":0,"file":"","func":"lapply(dfPlot2, differDf)","line_number":0},{"character_number":0,"end_character_number":0,"end_line_number":0,"file":"","func":"FUN(X[[i]], ...)","line_number":0}],"message":" df1row$date でエラー: $ operator is invalid for atomic vectors\n"}
