@@ -1,4 +1,0 @@
-"0","xlimVec <- c(1,36)"
-"0","par(family = ""HiraKakuPro-W3"", bty = ""l"")"
-"0","# まず軸だけ描画"
-"0","plot(0, 0, xlim=xlimVec, ylim=c(yMin,yMax), panel.first=grid(), xlab=""月"", ylab=""最高気温"", main="""")"

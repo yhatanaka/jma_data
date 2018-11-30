@@ -1,2 +1,0 @@
-"0","f <- read.table('data.csv',sep="","", skip=1, header=F, fileEncoding = ""Shift_JIS"")"
-"0","head(f)"

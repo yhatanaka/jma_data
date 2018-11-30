@@ -1,1 +1,0 @@
-{"frames":[{"character_number":0,"end_character_number":0,"end_line_number":0,"file":"","func":"apply(dfPlot2, 1, differDf)","line_number":0},{"character_number":0,"end_character_number":0,"end_line_number":0,"file":"","func":"FUN(newX[, i], ...)","line_number":0}],"message":" FUN(newX[, i], ...) でエラー:  オブジェクト 'df2' がありません \n"}

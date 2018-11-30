@@ -1,4 +1,0 @@
-"0","boxplot(dfList2$result ~ dfList2$month, notch=T, boxwex=1, panel.first=grid(), border=""#0000ff66"", col=""#0000ff30"")"
-"2"," int_abline(a = a, b = b, h = h, v = v, untf = untf, ...) でエラー: 
-  plot.new has not been called yet
-"

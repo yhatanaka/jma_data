@@ -1,1 +1,0 @@
-{"frames":[{"character_number":0,"end_character_number":0,"end_line_number":0,"file":"","func":"which(placeDf[2, ] == j)","line_number":0}],"message":" placeDf[2, ] でエラー:  次元数が正しくありません \n"}

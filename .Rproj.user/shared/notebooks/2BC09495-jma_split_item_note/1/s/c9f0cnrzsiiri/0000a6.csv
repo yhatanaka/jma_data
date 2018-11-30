@@ -1,6 +1,0 @@
-"0","xlimVec <- c(1,36)"
-"0","junLabels <- seq(2,35,by=3)"
-"0","junLabelsString <- 1:12"
-"0","par(family = ""HiraKakuPro-W3"", bty = ""l"")"
-"0","# まず軸だけ描画 x軸は次にaxisで描くので，ここでは描かない"
-"0","plot(0, 0, xlim=xlimVec, ylim=c(yMin,yMax), xlab=""月"", ylab=""気温"", main="""", xaxt=""n"")"

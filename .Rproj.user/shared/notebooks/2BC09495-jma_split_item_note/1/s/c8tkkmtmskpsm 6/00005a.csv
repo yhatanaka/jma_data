@@ -1,6 +1,0 @@
-"0","#  axes=F, ann=F で軸とラベル消す"
-"0","# plot(dfPlot3$month, dfPlot3$data, xlim=xlimVec, ylim=c(yMin,yMax), border=""#0000ff66"", col=""#0000ff30"", axes=F, ann=F)"
-"0","# points(dfPlot1$month, as.character(dfPlot1$data), pch=15, col=""#00ff0060"")"
-"0","# points(dfPlot1_1$month, as.character(dfPlot1_1$data), type=""b"", pch=pchTypes[1], col=lineCols[1], lty=lineTypes)"
-"0","# 月・旬・半旬"
-"0","points(dfPlot2_2$month, as.character(dfPlot2_2$data), type=""b"", pch=pchTypes[1], col=lineCols[1], lty=lineTypes)"

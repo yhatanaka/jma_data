@@ -1,7 +1,0 @@
-"0","differDf <- function(df1row,df2){"
-"0","  thisData <- subset(df2, df2[,""date""]==df1row[""date""])"
-"0","    result <- thisData[,""month""]"
-"0","    # df1row[,""differ""] <- thisData[,""date""]"
-"0","  return(result)"
-"0","}"
-"0","dfList3 <- apply(dfPlot2,1,differDf,dfPlot3)"

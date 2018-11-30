@@ -1,8 +1,0 @@
-"0","refDate <- dfPlot3[""date""]"
-"0","if(dfPlot2[""date""] == refDate){"
-"0","  differ <- dfPlot3[""data""] - dfPlot2[""data""]"
-"0","  names(differ) <- c(""result"")"
-"0","}"
-"2"," 条件が長さが 2 以上なので、最初の 1 つだけが使われます "
-"0","dfList2 <- data.frame(dfPlot2, differ)"
-"0","dfList2"

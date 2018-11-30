@@ -1,8 +1,0 @@
-"0","differDf <- function(df1row){"
-"0","  # theDate <- df1row$date"
-"0","  df1row[,""differ""] <- df1row[""data""] - df2[df2[""date""]==df1row[""date""],]"
-"0","  return(df1row)"
-"0","}"
-"0","dfList3 <- apply(dfPlot2,1,differDf)"
-"2"," FUN(newX[, i], ...) でエラー:  オブジェクト 'df2' がありません 
-"

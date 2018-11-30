@@ -1,2 +1,0 @@
-"0","par(family=""HiraKakuPro-W3"", lty=3, bty=""l"")"
-"0","plot(f2018$V1, f2018$V2, type=""o"", ylim=c(-10,35), col=rgb(0,1,0), pch=1, xlab=""月"", ylab=""気温"")"

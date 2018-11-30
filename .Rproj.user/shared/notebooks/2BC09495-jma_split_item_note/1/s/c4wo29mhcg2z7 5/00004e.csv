@@ -1,3 +1,0 @@
-"0","# points(dfPlot1$month, as.character(dfPlot1$data), pch=15, col=""#00ff0060"")"
-"0","# points(dfPlot1_1$month, as.character(dfPlot1_1$data), type=""b"", pch=pchTypes[1], col=lineCols[1], lty=lineTypes)"
-"0","par(new=T)"

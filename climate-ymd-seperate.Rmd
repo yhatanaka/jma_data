@@ -37,15 +37,62 @@ library("tidyverse")
 ```{r}
 # データ読み込み ファイル名指定
 f <-
-  read.table(
+  read_csv(
     'data-sakata-ymd-10-88-18.csv',
-    sep = ",",
+    col_names = FALSE,
     skip = 1,
-    header = F,
-    fileEncoding = "Shift_JIS",
-    stringsAsFactors = F,
-    # 空白を削除する
-    na.strings=c("", "NULL")
+    locale = locale(encoding = "cp932")
   )
-f
+f %>% head(6L)
 ```
+
+空行削除。
+```{r}
+f %>% head(6L) %>% filter(rowSums(is.na(.)) != ncol(.))
+```
+
+```{r}
+f %>% head(6L) %>% filter(rowSums(is.na(.)) != ncol(.)) %>% slice(1)
+```
+
+unique。
+```{r}
+f %>% head(6L) %>% filter(rowSums(is.na(.)) != ncol(.)) %>% slice(1) %>% as.matrix() %>% as.vector() %>% unique()
+```
+
+data_tbl ってデータ作っといて，1行目から"集計開始"・"集計終了"・NA除いたもの（＝地名）のベクトル 作る。
+```{r}
+data_tbl <- f %>% filter(rowSums(is.na(.)) != ncol(.))
+primary_row <- data_tbl %>% slice(1) %>% as.matrix() %>% as.vector()
+placeList <- primary_row %>% unique() %>% setdiff(c("集計開始", "集計終了")) %>% na.omit()
+placeList[1]
+```
+
+placeList ん中の地名を，place という列としてくっつける。
+```{r}
+newData_tbl <- data_tbl %>% mutate(place = placeList[1]) %>% select(place, everything())
+newData_tbl
+newData2_tbl <- data_tbl %>% mutate(place = placeList[1]) %>% select(c(1:6), place, which(grepl("酒田", primary_row)))
+newData2_tbl
+```
+
+日付の列（X1〜X6）と，データの列（X7 以降，1行目が"酒田"）とを分ける。
+```{r}
+data_tbl %>% select(c(1:6))
+
+# date_tbl <- 
+```
+
+```{r}
+grepl("酒田", primary_row)
+which(grepl(placeList[1], primary_row))
+```
+
+```{r}
+data_tbl %>% select(which(grepl(placeList[1], primary_row)))
+```
+
+```{r}
+
+```
+

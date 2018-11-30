@@ -1,8 +1,0 @@
-"0","df <- data.frame(x=1:3,y=3:5,z=5:7)"
-"0","# 行ごと"
-"0","testFunc <- function(d){"
-"0","  c(d, Z=sum(d))"
-"0","}"
-"0","testtest <- apply(df, 1, testFunc)"
-"0","testtest2 <- t(testtest)"
-"0","data.frame(t(testtest))"

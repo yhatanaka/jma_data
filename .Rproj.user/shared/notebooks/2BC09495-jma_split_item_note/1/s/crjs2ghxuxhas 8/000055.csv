@@ -1,6 +1,0 @@
-"0","abline(h=0, col=""gray"", lty=2"
-"0","par(new=T)"
-"2"," エラー:  想定外のシンボルです  in:
-""abline(h=0, col=""gray"", lty=2
-par""
-"

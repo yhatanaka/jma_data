@@ -1,7 +1,0 @@
-"0","df <- data.frame(x=1:3,y=3:5,z=5:7)"
-"0","# 行ごと"
-"0","testFunc <- function(d){"
-"0","  c(d, Z=sum(d))"
-"0","}"
-"0","# t(apply(df, 1, testFunc))"
-"0","data.frame(t(apply(df, 1, function(d){ c(d, Z=sum(d)) })))"

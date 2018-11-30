@@ -1,7 +1,0 @@
-"0","# boxplot(dfPlot2$data ~ dfPlot2$month, axes=F, ann=F, xlim=xlimVec, ylim=c(yMin,yMax), notch=T, boxwex=0.4, at=(1:12)+0.2, border=""#0000ff66"", col=""#0000ff30"")"
-"0","# par(new=T)"
-"0","# boxplot(dfPlot3$data ~ dfPlot3$month, axes=F, ann=F, xlim=xlimVec, ylim=c(yMin,yMax), notch=T, boxwex=0.4, at=(1:12)-0.2, border=""#ff000066"", col=""#ff000030"")"
-"0","boxplot(dfPlot2$data ~ dfPlot2$date, axes=F, ann=F, xlim=xlimVec, ylim=c(yMin,yMax), notch=T, boxwex=0.4, at=(1:12)+0.2, border=""#0000ff66"", col=""#0000ff30"")"
-"2"," bxp(list(stats = c(-0.9, -0.9, -0.9, -0.9, -0.9, -0.3, -0.3,  でエラー: 
-   'at' は 'z$n' と同じ長さ (すなわち 139) を持たなければなりません 
-"

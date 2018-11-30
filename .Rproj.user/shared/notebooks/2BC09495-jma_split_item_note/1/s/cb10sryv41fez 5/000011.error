@@ -1,1 +1,0 @@
-{"frames":[],"message":" エラー: Incomplete expression: differDf <- function(df1row){\n  # theDate <- df1row$date\n  # df1row[,\"differ\"] <- df1row$data - df2[df2$date==df1row$date,]\n  return(df1row[\"data\"\"])\n}\ndfList3 <- apply(dfPlot2,1,differDf)\n"}

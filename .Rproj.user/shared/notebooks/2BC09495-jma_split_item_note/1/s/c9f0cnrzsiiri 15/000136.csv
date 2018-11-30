@@ -1,1 +1,0 @@
-"0","plot(dfPlot3_2$date, dfPlot3_2$data, ylim=c(yMin,yMax), type=""b"", pch=pchTypes[2], col=lineCols[2], lty=lineTypes)"
