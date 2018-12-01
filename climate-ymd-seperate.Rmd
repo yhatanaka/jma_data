@@ -12,13 +12,6 @@ output:
 plot(cars)
 ```
 
-Add a new chunk by clicking the *Insert Chunk* button on the toolbar or by pressing *Cmd+Option+I*.
-
-When you save the notebook, an HTML file containing the code and output will be saved alongside it (click the *Preview* button or press *Cmd+Shift+K* to preview the HTML file). 
-
-The preview shows you a rendered HTML copy of the contents of the editor. Consequently, unlike *Knit*, *Preview* does not run any R code chunks. Instead, the output of the chunk when it was last run in the editor is displayed.
-
-
 (初回だけ)パッケージのインストール
 ```{r eval=FALSE, include=FALSE}
 #パッケージのインストール
@@ -30,7 +23,7 @@ install.packages("tidyverse")
 ```{r}
 #パッケージの読み込み
 library("tidyverse")
-
+library("magrittr")
 ```
 
 データ読み込み ファイル名指定
@@ -48,8 +41,78 @@ f %>% head(6L)
 
 空行削除。
 ```{r}
-f %>% head(6L) %>% filter(rowSums(is.na(.)) != ncol(.))
+f %<>% filter(rowSums(is.na(.)) != ncol(.))
 ```
+
+方針決める。
+
+実際のデータの行と，項目名の行を分ける。
+
+要は項目名に相当する行が何行目までか，データが何行目からか。
+
+データの行は，基本数字（かNA）が入ってるはず。数字に変換してみる。
+
+```{r}
+sapply(f[,1], as.numeric) %>% head(8)
+```
+
+同じことを purrr で。
+```{r}
+f[,1] %>% purrr::map(as.numeric) %>% head(8)
+```
+
+…
+```{r}
+f[,1] %>% map(as.numeric) %>% str
+```
+
+リストか。
+```{r}
+f[,1] %>% purrr::map(as.numeric) %>% flatten_dbl %>% head(8)
+```
+
+
+先頭から"NA"が続く最後の行までが項目名。その後のちゃんと数字が始まる（NA じゃない）行からがデータ。
+
+as.numeric が NA に「ならない」（つまり数字）行は…
+```{r}
+f[,1] %>% purrr::map(as.numeric) %>% map({~ !is.na(.)}) %>% flatten_lgl %>% head(8)
+```
+
+TRUE になる一番始めの行，つまりデータの始まる行は…
+```{r}
+f[,1] %>% purrr::map(as.numeric) %>% map({~ !is.na(.)}) %>% flatten_lgl %>% which %>% min
+```
+
+ということで，この行まではヘッダ用としてとっといてから削除。
+```{r}
+# ヘッダ用の行の最後
+header_row_end <- (f[,1] %>% purrr::map(as.numeric) %>% map({~ !is.na(.)}) %>% flatten_lgl %>% which %>% min)-1
+header_row_end
+# ヘッダ用の行
+header_row <- f %>% slice(1:header_row_end)
+# header_row <- f[1:header_row_end,]
+header_row
+# ヘッダ用の行を削除した残りが，データ用
+f %>% slice(-c(1:header_row_end))
+
+```
+
+年月日を表す列を決める。
+まず先頭行。
+```{r}
+header_row %>% slice(1)
+```
+
+各項目が「集計開始」「集計終了」NA など「以外」かどうか。
+```{r}
+ymd_col_names = c("集計開始", "集計終了")
+function is_ymd_row(x) {
+  return(x )
+}
+header_row %>% 
+```
+
 
 ```{r}
 f %>% head(6L) %>% filter(rowSums(is.na(.)) != ncol(.)) %>% slice(1)
@@ -70,15 +133,17 @@ placeList[1]
 
 placeList ん中の地名を，place という列としてくっつける。
 ```{r}
-newData_tbl <- data_tbl %>% mutate(place = placeList[1]) %>% select(place, everything())
+newData_tbl <- data_tbl %>% mutate(place = placeList[1]) %>% dplyr::select(place, everything())
 newData_tbl
-newData2_tbl <- data_tbl %>% mutate(place = placeList[1]) %>% select(c(1:6), place, which(grepl("酒田", primary_row)))
+newData2_tbl <- data_tbl %>% mutate(place = placeList[1]) %>% dplyr::select(c(1:6), place, which(grepl("酒田", primary_row)))
 newData2_tbl
 ```
 
+あとで使うと思うので練習。
+
 日付の列（X1〜X6）と，データの列（X7 以降，1行目が"酒田"）とを分ける。
 ```{r}
-data_tbl %>% select(c(1:6))
+data_tbl %>% dplyr::select(c(1:6))
 
 # date_tbl <- 
 ```
@@ -89,10 +154,17 @@ which(grepl(placeList[1], primary_row))
 ```
 
 ```{r}
-data_tbl %>% select(which(grepl(placeList[1], primary_row)))
+data_tbl %>% dplyr::select(which(grepl(placeList[1], primary_row)))
+```
+
+さて，newData2_tbl に列名をつける。newData2_tbl の作り方アレンジして，年月日のとこに列名つけながら作ると…
+```{r}
+ymd_headers = c(from_y = 1, from_m = 2, from_d = 3, end_y = 4, end_m = 5, end_d = 6)
+newData3_tbl <- data_tbl %>% mutate(place = placeList[1]) %>% dplyr::select(ymd_headers, place, which(grepl("酒田", primary_row)))
+newData3_tbl
 ```
 
 ```{r}
-
+vignette("introduction", package = "dplyr") 
 ```
 
