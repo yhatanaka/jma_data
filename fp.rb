@@ -122,13 +122,15 @@ class CodeSeperater
 				proc_ary.push(chunk['common_sentence'])
 			end #if
 			if chunk['func'].size > 0
+				func_ary.push('# >>func')
 				func_ary.push(chunk['func'].join("\n"))
 			end #if
 			if chunk['proc'].size > 0
+				proc_ary.push('# >>proc')
 				proc_ary.push(chunk['proc'].join("\n"))
 			end #if
 		end # each
-		return print_arys([func_ary, proc_ary])
+		return print_arys([func_ary, ['', '# <<< func : proc >>>', ''], proc_ary])
 
 	end
 
@@ -136,7 +138,72 @@ class CodeSeperater
 		return arys.flatten.join("\n")+ "\n"
 	end #def
 
+	def fromSeperated(f)
+		fromSeperatedToAry(f)
+		return $chunk_ary
+	end
 
+	def fromSeperatedToAry(f)
+		# chunk 名: 
+		# >> hoge
+		chunk_regex = /\#\s*>>\s*(.+)\s*/
+		# 関数部分: 
+		# >> func
+		func_regex = /\#\s*>>\s*func/
+		# 処理部分: 
+		# >> proc
+		proc_regex = /\#\s*>>\s*proc/
+		
+		$chunk_ary = Array.new
+		chunk_name =''
+		# chunk 名以外をクリア
+		common_sentence_ary = Array.new
+		fp_mode = ''
+		func_ary = Array.new
+		proc_ary = Array.new
+		chunk_hash = {}
+
+		f.each do |line|
+			# モード切り替え
+			if line =~ func_regex
+				fp_mode = 'func'
+			# モード切り替え
+			elsif line =~ proc_regex
+				fp_mode = 'proc'
+			# chunk_regex に該当すると，func_regex，proc_regex にもヒットしてしまうので，最後に
+			elsif line =~ chunk_regex
+				# 2つ目以降の chunk なら，前の chunk を hash にして追加してから, chunk_name 更新
+				if chunk_hash.size > 0
+					chunk_hash = make_a_chunk_ary(chunk_name, common_sentence_ary, func_ary, proc_ary)
+					$chunk_ary.push(chunk_hash)
+					# chunk 名以外をクリア
+					common_sentence_ary = Array.new
+					fp_mode = ''
+					func_ary = Array.new
+					proc_ary = Array.new
+					chunk_hash = {}
+				end #if
+				chunk_name = $1.strip
+				# モード切り替え
+				fp_mode = 'common'
+			else
+				# 切り替えたモードに応じて，ソースを適当な配列に追加
+				case fp_mode
+				when 'common' then
+					common_sentence_ary.push(line)
+				when 'func' then
+					func_ary.push(line)
+				when 'proc' then
+					proc_ary.push(line)
+				else
+					
+				end
+			end
+			# 最後の chunk を追加
+			chunk_hash = make_a_chunk_ary(chunk_name, common_sentence_ary, func_ary, proc_ary)
+		end # f.each
+		$chunk_ary.push(chunk_hash)
+	end
 end #class
 
 if input_file

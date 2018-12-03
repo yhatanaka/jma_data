@@ -87,18 +87,25 @@ $result7 =<<EOS
 # >> 1. データ読み込み >>func>>
 # テスト
   test # テスト2
+# >>func
 read_jma <- function(csv_f) {
       data_file
   # 空行削除
 # >> 2. ヘッダ header >>func>>
+# >>func
         func_2
         test
+
+# <<< func : proc >>>
+
 # >> 1. データ読み込み >>proc>>
 # テスト
   test # テスト2
+# >>proc
 data_tbl <- read_jma(data_file)
 
 # >> 2. ヘッダ header >>proc>>
+# >>proc
         proc_2
                 testetst
 EOS
