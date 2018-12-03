@@ -105,9 +105,6 @@ EOS
 
 
 class SeperateTest <Minitest::Test
-        # def test_sep7
-        #         assert_equal $result7, seperate_func_proc(seperate_all_chunk($test6))
-        # end
         def test_sep_class_1
           testCD = CodeSeperater.new
           assert_equal $result1, testCD.fromChunked($test1)
@@ -134,7 +131,7 @@ class SeperateTest <Minitest::Test
         end
         def test_sep_class_7
           testCD = CodeSeperater.new
-          assert_equal $result3, testCD.toSeperated($test6)
+          assert_equal $result7, testCD.toSeperated($test6)
         end
       
 end

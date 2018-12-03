@@ -5,7 +5,7 @@ input_file = ARGV.shift
 output_file = ARGV.shift
 
 
-# code_ary : [chunk_hash_1, chunk_hash_2, ...]
+# chunk_ary : [chunk_hash_1, chunk_hash_2, ...]
 # chunk-hash : hash: {
 # 	hash_name => # >> 'hoge'
 # 	common_sentence => array : [
@@ -27,97 +27,8 @@ output_file = ARGV.shift
 #		, 'guge = guga + gego'
 #	]
 
-def seperate_all_chunk(strs)
-# chunk 名: 
-# >> hoge
-	chunk_regex = /\#\s*>>\s*(.+)\s*/
-# 関数部分: 
-# >> func
-	func_regex = /\#\s*>>\s*func/
-# 処理部分: 
-# >> proc
-	proc_regex = /\#\s*>>\s*proc/
-	 
-	code_ary = Array.new
-	chunk_name =''
-# chunk 名以外をクリア
-	common_sentence_ary = Array.new
-	fp_mode = ''
-	func_ary = Array.new
-	proc_ary = Array.new
-	chunk_hash = {}
-
-	strs.each do |line|
-# モード切り替え
-		if line =~ func_regex
-			fp_mode = 'func'
-# モード切り替え
-		elsif line =~ proc_regex
-			fp_mode = 'proc'
-# chunk_regex に該当すると，func_regex，proc_regex にもヒットしてしまうので，最後に
-		elsif line =~ chunk_regex
-# 2つ目以降の chunk なら，前の chunk を hash にして追加してから, chunk_name 更新
-			if chunk_hash.size > 0
-				chunk_hash = make_a_chunk_ary(chunk_name, common_sentence_ary, func_ary, proc_ary)
-				code_ary.push(chunk_hash)
-# chunk 名以外をクリア
-				common_sentence_ary = Array.new
-				fp_mode = ''
-				func_ary = Array.new
-				proc_ary = Array.new
-				chunk_hash = {}
-			end #if
-			chunk_name = $1.strip
-# モード切り替え
-			fp_mode = 'common'
-		else
-# 切り替えたモードに応じて，ソースを適当な配列に追加
-			case fp_mode
-			when 'common' then
-				common_sentence_ary.push(line)
-			when 'func' then
-				func_ary.push(line)
-			when 'proc' then
-				proc_ary.push(line)
-			else
-				
-			end
-		end
-# 最後の chunk を追加
-		chunk_hash = make_a_chunk_ary(chunk_name, common_sentence_ary, func_ary, proc_ary)
-	end # f.each
-	return code_ary.push(chunk_hash)
-end #def
-
-
-def print_arys(arys)
-	return arys.flatten.join("\n")+ "\n"
-end #def
-
-def seperate_func_proc(chunk_ary)
-	func_ary = Array.new
-	proc_ary = Array.new
-	chunk_ary.each do |chunk|
-		func_ary.push('# >> ' + chunk['hash_name'] + " >>func>>")
-		proc_ary.push('# >> ' + chunk['hash_name'] + " >>proc>>")
-		if chunk['common_sentence'].size > 0
-			func_ary.push(chunk['common_sentence'])
-			proc_ary.push(chunk['common_sentence'])
-		end #if
-		if chunk['func'].size > 0
-			func_ary.push(chunk['func'].join("\n"))
-		end #if
-		if chunk['proc'].size > 0
-			proc_ary.push(chunk['proc'].join("\n"))
-		end #if
-	end # each
-	return print_arys([func_ary, proc_ary])
-end #def
-
-
-
 class CodeSeperater
-	$code_ary = Array.new
+	$chunk_ary = Array.new
 
 	def make_a_chunk_ary(str, cs_ary, f_ary, p_ary)
 		result = Hash.new
@@ -139,7 +50,7 @@ class CodeSeperater
 		# >> proc
 		proc_regex = /\#\s*>>\s*proc/
 		
-		$code_ary = Array.new
+		$chunk_ary = Array.new
 		chunk_name =''
 		# chunk 名以外をクリア
 		common_sentence_ary = Array.new
@@ -160,7 +71,7 @@ class CodeSeperater
 				# 2つ目以降の chunk なら，前の chunk を hash にして追加してから, chunk_name 更新
 				if chunk_hash.size > 0
 					chunk_hash = make_a_chunk_ary(chunk_name, common_sentence_ary, func_ary, proc_ary)
-					$code_ary.push(chunk_hash)
+					$chunk_ary.push(chunk_hash)
 					# chunk 名以外をクリア
 					common_sentence_ary = Array.new
 					fp_mode = ''
@@ -187,12 +98,12 @@ class CodeSeperater
 			# 最後の chunk を追加
 			chunk_hash = make_a_chunk_ary(chunk_name, common_sentence_ary, func_ary, proc_ary)
 		end # f.each
-		$code_ary.push(chunk_hash)
+		$chunk_ary.push(chunk_hash)
 	end
 
 	def fromChunked(f)
 		fromChunkedToAry(f)
-		return $code_ary
+		return $chunk_ary
 	end
 
 	def toSeperated(f)
@@ -201,8 +112,31 @@ class CodeSeperater
 	end
 
 	def toSeperatedFromAry()
+		func_ary = Array.new
+		proc_ary = Array.new
+		$chunk_ary.each do |chunk|
+			func_ary.push('# >> ' + chunk['hash_name'] + " >>func>>")
+			proc_ary.push('# >> ' + chunk['hash_name'] + " >>proc>>")
+			if chunk['common_sentence'].size > 0
+				func_ary.push(chunk['common_sentence'])
+				proc_ary.push(chunk['common_sentence'])
+			end #if
+			if chunk['func'].size > 0
+				func_ary.push(chunk['func'].join("\n"))
+			end #if
+			if chunk['proc'].size > 0
+				proc_ary.push(chunk['proc'].join("\n"))
+			end #if
+		end # each
+		return print_arys([func_ary, proc_ary])
 
 	end
+
+	def print_arys(arys)
+		return arys.flatten.join("\n")+ "\n"
+	end #def
+
+
 end #class
 
 if input_file
