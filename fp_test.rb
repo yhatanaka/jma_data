@@ -1,7 +1,7 @@
 #!/usr/bin/ruby
 require 'minitest/autorun'
 
-require './fp'
+require __dir__ + '/fp'
 
 $test1 =<<EOS.split("\n")
 # >> 1. データ読み込み
