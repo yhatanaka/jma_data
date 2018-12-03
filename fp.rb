@@ -27,15 +27,6 @@ output_file = ARGV.shift
 #		, 'guge = guga + gego'
 #	]
 
-def make_a_chunk_ary(str, cs_ary, f_ary, p_ary)
-	result = Hash.new
-	result['hash_name'] = str
-	result['common_sentence'] = cs_ary
-	result['func'] = f_ary
-	result['proc'] = p_ary
-	return result
-end #def
- 
 def seperate_all_chunk(strs)
 # chunk 名: 
 # >> hoge
@@ -127,6 +118,16 @@ end #def
 
 class CodeSeperater
 	$code_ary = Array.new
+
+	def make_a_chunk_ary(str, cs_ary, f_ary, p_ary)
+		result = Hash.new
+		result['hash_name'] = str
+		result['common_sentence'] = cs_ary
+		result['func'] = f_ary
+		result['proc'] = p_ary
+		return result
+	end #def
+	 
 	def fromChunkedToAry(f)
 		# chunk 名: 
 		# >> hoge
@@ -194,8 +195,13 @@ class CodeSeperater
 		return $code_ary
 	end
 
-	def toSeperated(str)
-		fromChunkedToAry(str)
+	def toSeperated(f)
+		fromChunkedToAry(f)
+		toSeperatedFromAry()
+	end
+
+	def toSeperatedFromAry()
+
 	end
 end #class
 
