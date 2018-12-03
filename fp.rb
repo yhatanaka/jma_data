@@ -127,7 +127,7 @@ end #def
 
 class CodeSeperater
 	$code_ary = Array.new
-	def fromChunked(f)
+	def fromChunkedToAry(f)
 		# chunk 名: 
 		# >> hoge
 		chunk_regex = /\#\s*>>\s*(.+)\s*/
@@ -186,9 +186,17 @@ class CodeSeperater
 			# 最後の chunk を追加
 			chunk_hash = make_a_chunk_ary(chunk_name, common_sentence_ary, func_ary, proc_ary)
 		end # f.each
-		return $code_ary.push(chunk_hash)
+		$code_ary.push(chunk_hash)
 	end
 
+	def fromChunked(f)
+		fromChunkedToAry(f)
+		return $code_ary
+	end
+
+	def toSeperated(str)
+		fromChunkedToAry(str)
+	end
 end #class
 
 if input_file
