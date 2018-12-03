@@ -129,4 +129,17 @@ class SeperateTest <Minitest::Test
         def test_sep7
                 assert_equal $result7, seperate_func_proc(seperate_all_chunk($test6))
         end
+        def test_sep_class_1
+          testCD = CodeSeperater.new
+          assert_equal $result1, testCD.fromChunked($test1)
+        end
+        def test_sep_class_2
+          testCD = CodeSeperater.new
+          assert_equal $result2, testCD.fromChunked($test2)
+        end
+        def test_sep_class_3
+          testCD = CodeSeperater.new
+          assert_equal $result3, testCD.fromChunked($test3)
+        end
+      
 end
