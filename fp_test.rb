@@ -83,26 +83,6 @@ $result6 = [{
 
 # ---------------------
 
-$test7 =<<EOS.split("\n")
-# >> 1. データ読み込み
-# テスト
-  test # テスト2
-# >>func
-read_jma <- function(csv_f) {
-      data_file
-  # 空行削除
-# >>proc
-data_tbl <- read_jma(data_file)
-
-# >> 2. ヘッダ header 
-# >>func
-        func_2
-        test
-# >>proc
-        proc_2
-                testetst
-EOS
-
 $result7 =<<EOS
 # >> 1. データ読み込み >>func>>
 # テスト
@@ -147,6 +127,6 @@ end
 
 class SeperateTest <Minitest::Test
         def test_sep7
-                assert_equal $result7, seperate_func_proc(seperate_all_chunk($test7))
+                assert_equal $result7, seperate_func_proc(seperate_all_chunk($test6))
         end
 end

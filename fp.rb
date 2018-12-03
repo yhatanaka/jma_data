@@ -99,14 +99,28 @@ def seperate_all_chunk(strs)
 end #def
 
 
+def print_arys(arys)
+	return arys.flatten.join("\n")+ "\n"
+end #def
+
 def seperate_func_proc(chunk_ary)
-	result = Array.new
+	func_ary = Array.new
+	proc_ary = Array.new
 	chunk_ary.each do |chunk|
-		result.push('# >> ' + chunk['hash_name'] + " >>func>>")
-		result.push(chunk['common_sentence'].join("\n") )
-		result.push(chunk['func'].join("\n"))
+		func_ary.push('# >> ' + chunk['hash_name'] + " >>func>>")
+		proc_ary.push('# >> ' + chunk['hash_name'] + " >>proc>>")
+		if chunk['common_sentence'].size > 0
+			func_ary.push(chunk['common_sentence'])
+			proc_ary.push(chunk['common_sentence'])
+		end #if
+		if chunk['func'].size > 0
+			func_ary.push(chunk['func'].join("\n"))
+		end #if
+		if chunk['proc'].size > 0
+			proc_ary.push(chunk['proc'].join("\n"))
+		end #if
 	end # each
-	return result.join("\n")
+	return print_arys([func_ary, proc_ary])
 end #def
 
 
