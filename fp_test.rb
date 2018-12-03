@@ -141,5 +141,21 @@ class SeperateTest <Minitest::Test
           testCD = CodeSeperater.new
           assert_equal $result3, testCD.fromChunked($test3)
         end
+        def test_sep_class_4
+          testCD = CodeSeperater.new
+          assert_equal $result4, testCD.fromChunked($test4)
+        end
+        def test_sep_class_5
+          testCD = CodeSeperater.new
+          assert_equal $result5, testCD.fromChunked($test5)
+        end
+        def test_sep_class_6
+          testCD = CodeSeperater.new
+          assert_equal $result6, testCD.fromChunked($test6)
+        end
+        def test_sep_class_7
+          testCD = CodeSeperater.new
+          assert_equal $result3, testCD.toSeperated($test6)
+        end
       
 end

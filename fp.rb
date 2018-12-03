@@ -126,6 +126,7 @@ end #def
 
 
 class CodeSeperater
+	$code_ary = Array.new
 	def fromChunked(f)
 		# chunk 名: 
 		# >> hoge
@@ -137,7 +138,7 @@ class CodeSeperater
 		# >> proc
 		proc_regex = /\#\s*>>\s*proc/
 		
-		code_ary = Array.new
+		$code_ary = Array.new
 		chunk_name =''
 		# chunk 名以外をクリア
 		common_sentence_ary = Array.new
@@ -158,7 +159,7 @@ class CodeSeperater
 				# 2つ目以降の chunk なら，前の chunk を hash にして追加してから, chunk_name 更新
 				if chunk_hash.size > 0
 					chunk_hash = make_a_chunk_ary(chunk_name, common_sentence_ary, func_ary, proc_ary)
-					code_ary.push(chunk_hash)
+					$code_ary.push(chunk_hash)
 					# chunk 名以外をクリア
 					common_sentence_ary = Array.new
 					fp_mode = ''
@@ -185,7 +186,7 @@ class CodeSeperater
 			# 最後の chunk を追加
 			chunk_hash = make_a_chunk_ary(chunk_name, common_sentence_ary, func_ary, proc_ary)
 		end # f.each
-		return code_ary.push(chunk_hash)
+		return $code_ary.push(chunk_hash)
 	end
 
 end #class
