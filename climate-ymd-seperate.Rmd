@@ -26,6 +26,29 @@ library("tidyverse")
 library("magrittr")
 ```
 
+```
+─ Attaching packages ──────────────────────────────────────────────── tidyverse 1.2.1 ─
+✔ ggplot2 3.1.0     ✔ purrr   0.2.5
+✔ tibble  1.4.2     ✔ dplyr   0.7.8
+✔ tidyr   0.8.2     ✔ stringr 1.3.1
+✔ readr   1.2.1     ✔ forcats 0.3.0
+─ Conflicts ───────────────────────────────────────────────── tidyverse_conflicts() ─
+✖ dplyr::filter() masks stats::filter()
+✖ dplyr::lag()    masks stats::lag()
+
+ 次のパッケージを付け加えます: ‘magrittr’ 
+
+ 以下のオブジェクトは ‘package:purrr’ からマスクされています: 
+
+     set_names 
+
+ 以下のオブジェクトは ‘package:tidyr’ からマスクされています: 
+
+     extract 
+
+```
+だそうな。
+
 データ読み込み ファイル名指定
 ```{r}
 # データ読み込み ファイル名指定
@@ -104,14 +127,353 @@ f %>% slice(-c(1:header_row_end))
 header_row %>% slice(1)
 ```
 
-各項目が「集計開始」「集計終了」NA など「以外」かどうか。
+各項目が「集計開始」「集計終了」NA など「以外」（つまり地名）かどうか。
 ```{r}
 ymd_col_names = c("集計開始", "集計終了")
-function is_ymd_row(x) {
-  return(x )
+is_ymd_row <- function(x, col_names) {
+  result <- !(x %in% col_names) && !is.na(x)
+  return(result)
 }
-header_row %>% 
+sapply(header_row, is_ymd_row, ymd_col_names)
 ```
+
+年月日の列の最後は，地名が始まる一番最初の列の，1つ前
+```{r}
+ymd_col_end <- (sapply(header_row, is_ymd_row, ymd_col_names) %>% which %>% min) -1
+ymd_col_end
+```
+
+というわけで，年月日の列。
+```{r}
+f %>% dplyr::select(c(1:ymd_col_end))
+```
+
+ちなみに年月日のヘッダ部分。
+```{r}
+f %>% dplyr::select(c(1:ymd_col_end)) %>% slice(1:header_row_end)
+```
+
+年月日データ部分。
+```{r}
+f %>% dplyr::select(c(1:ymd_col_end)) %>% slice(-c(1:header_row_end)) %>% head(6)
+```
+
+
+それ以外，つまり気象データの列。
+```{r}
+f %>% dplyr::select(c(1:ymd_col_end))
+
+```
+
+気象データのヘッダ。
+```{r}
+f %>% dplyr::select(-c(1:ymd_col_end)) %>% slice(1:header_row_end)
+```
+
+気象の実データ部分。
+```{r}
+f %>% dplyr::select(-c(1:ymd_col_end)) %>% slice(-c(1:header_row_end)) %>% head(6)
+```
+ここまでのまとめ。
+```{r}
+# データ読み込み
+data_file = 'data-sakata-ymd-10-88-18.csv'
+ymd_col_names = c("集計開始", "集計終了")
+
+read_jma <- function(csv_f) {
+  f <-
+    read_csv(
+      data_file
+      , col_names = FALSE
+      , skip = 1
+      , locale = locale(encoding = "cp932")
+    )
+# 空行削除
+  return(f %>% filter(rowSums(is.na(.)) != ncol(.)))
+}
+
+# ヘッダとして扱うのは何行目までか
+header_row_end <- function(tbl) {
+  result <- (tbl[,1] %>% purrr::map(as.numeric) %>% map({~ !is.na(.)}) %>% flatten_lgl %>% which %>% min)-1
+  return(result)
+}
+# ヘッダの行
+header_rows <- function(tbl, hd_num) {
+  return(tbl %>% slice(c(1:hd_num)))
+}
+# データの行
+data_rows <- function(tbl, row_num) {
+  return(tbl %>% slice(-c(1:row_num)))
+}
+
+# 年月日は何列目までか
+# header_row <- f %>% slice(1:header_row_end)
+is_ymd_row <- function(x, col_names) {
+  result <- !(x %in% col_names) && !is.na(x)
+  return(result)
+}
+ymd_col_end <- function(tbl, col_names) {
+  (sapply(tbl[1,], is_ymd_row, col_names) %>% which %>% min) -1
+}
+# ymdの列
+ymd_cols <- function(tbl, col_num) {
+  return(tbl %>% dplyr::select(c(1:col_num)))
+}
+clm_cols <- function(tbl, col_num) {
+  return(tbl %>% dplyr::select(-c(1:col_num)))
+}
+
+
+data_tbl <- read_jma(data_file)
+
+# ヘッダ行
+headers_end <- data_tbl %>% header_row_end
+# 年月日列
+ymd_end <- data_tbl %>% ymd_col_end(ymd_col_names)
+
+# data_tbl %>% ymd_cols(ymd_end) %>% header_rows(headers_end)
+# data_tbl %>% ymd_cols(ymd_end) %>% data_rows(headers_end)
+# data_tbl %>% clm_cols(ymd_end) %>% header_rows(headers_end)
+# data_tbl %>% clm_cols(ymd_end) %>% data_rows(headers_end)
+
+
+```
+
+さて，ヘッダとしてとっといたとこから，列名作る。
+
+まず年月日。
+```{r eval=FALSE, include=FALSE}
+install.packages("Hmisc")
+library("Hmisc")
+
+```
+
+「集計開始」「集計終了」が入ってない列を穴埋め。
+
+一度転置してから下方向に補完して，元に戻す。
+```{r}
+ymd_headers_tbl <- data_tbl %>% ymd_cols(ymd_end) %>% header_rows(headers_end)
+# ymd_headers_tbl
+ymd_headers_tbl[1,] %<>% t %>% as.data.frame() %>% tidyr::fill(1) %>% t
+ymd_headers_tbl
+```
+
+1行目が「集計開始」=> start,「集計終了」=> end，2行目「年」=> y,「月」=> m,「日」=> d に変換，くっつけて列名に。
+```{r}
+start_end_vec <- c("集計開始" = "start", "集計終了" = "end")
+ymd_vec <- c("年" = "y", "月" = "m", "日" = "d")
+make_ymd_rowname <- function(dt, vec1, vec2) {
+  result1 <- vec1[dt[1]]
+  result2 <- vec2[dt[2]]
+  result <- paste(result1, result2, sep="_")
+  return(result)
+}
+
+ymd_col_name <- apply(ymd_headers_tbl, 2, make_ymd_rowname, start_end_vec, ymd_vec)
+ymd_col_name
+```
+
+年月日のデータに，列名つける。
+```{r}
+ymd_data_tbl <- data_tbl %>% ymd_cols(ymd_end) %>% data_rows(headers_end)
+names(ymd_data_tbl) <- ymd_col_name
+ymd_data_tbl
+```
+気象データの列名。まずヘッダは…
+```{r}
+clm_headers_tbl <- data_tbl %>% clm_cols(ymd_end) %>% header_rows(headers_end)
+clm_headers_tbl
+```
+
+2行目と3行目くっつけて列名に。
+```{r}
+make_clm_rowname <- function(dt) {
+  result1 <- dt[2]
+  result2 <- dt[3]
+  result <- paste(result1, result2, sep="_")
+  return(result)
+}
+
+clm_col_name <- apply(clm_headers_tbl, 2, make_clm_rowname)
+clm_col_name
+```
+
+…「_NA」はいらんな。
+```{r}
+make_clm_rowname <- function(dt) {
+  result1 <- dt[2]
+  result2 <- dt[3]
+  result_vec <- c(result1, result2)
+# result_vec から，NAではない要素を，"_"で連結して返す
+  result <- paste(result_vec[!is.na(result_vec)], collapse="_")
+  return(result)
+}
+
+clm_col_name <- apply(clm_headers_tbl, 2, make_clm_rowname)
+clm_col_name
+
+```
+
+2行目の「(時間)」「(℃)」「(mm)」「の平均」「の合計」，3行目の「番号」「情報」なんかもジャマ。
+```{r}
+rmv_str_1 <- function(str) {
+  result <- str %>% sub("の.+", "", .) %>% sub("\\(.+", "", .)
+  return(result)
+}
+rmv_str_2 <- function(str) {
+  result <- str %>% sub("情報", "", .) %>% sub("番号", "", .)
+  return(result)
+}
+make_clm_rowname <- function(dt) {
+  result1 <- rmv_str_1(dt[2])
+  result2 <- rmv_str_2(dt[3])
+  result_vec <- c(result1, result2)
+# result_vec から，NAではない要素を，"_"で連結して返す
+  result <- paste(result_vec[!is.na(result_vec)], collapse="_")
+  return(result)
+}
+
+clm_col_name <- apply(clm_headers_tbl, 2, make_clm_rowname)
+clm_col_name
+```
+
+列名つける。
+```{r}
+clm_data_tbl <- data_tbl %>% clm_cols(ymd_end) %>% data_rows(headers_end)
+names(clm_data_tbl) <- clm_col_name
+clm_data_tbl
+
+```
+
+
+ここまでのまとめ。若干リファクタリング。
+```{r}
+#パッケージのインストール
+# install.packages("tidyverse")
+
+library("tidyverse")
+library("magrittr")
+
+# データ読み込み
+data_file = 'data-sakata-ymd-10-88-18.csv'
+ymd_col_names = c("集計開始", "集計終了")
+
+read_jma <- function(csv_f) {
+  f <-
+    read_csv(
+      data_file
+      , col_names = FALSE
+      , skip = 1
+      , locale = locale(encoding = "cp932")
+    )
+  # 空行削除
+  return(f %>% filter(rowSums(is.na(.)) != ncol(.)))
+}
+
+# ヘッダとして扱うのは何行目までか
+# 先頭から"NA"が続く最後の行までが項目名。その後のちゃんと数字が始まる（NA じゃない）行からがデータ。
+# ヘッダの行の最後は，as.numeric が NA 「ではない」（つまり数字）一番始めの（つまりデータの始まる）行の一つ前まで
+header_row_end <- function(tbl) {
+  result <- (tbl[,1] %>% purrr::map(as.numeric) %>% map({~ !is.na(.)}) %>% flatten_lgl %>% which %>% min)-1
+  return(result)
+}
+# ヘッダは hd_num 行まで
+header_rows <- function(tbl, hd_num) {
+  return(tbl %>% slice(c(1:hd_num)))
+}
+# それ以降，つまりデータの行
+data_rows <- function(tbl, row_num) {
+  return(tbl %>% slice(-c(1:row_num)))
+}
+
+# 年月日を表す列はどこまでか
+# 先頭で宣言した ymd_col_names や NA「以外」（つまり地名）かどうか
+not_ymd_col <- function(x, col_names) {
+  result <- !(x %in% col_names) && !is.na(x)
+  return(result)
+}
+# 年月日の列の最後は，地名が始まる一番最初の列(not_ymd_col が TRUE になる最初の列)の，1つ前
+ymd_col_end <- function(tbl, col_names) {
+  (sapply(tbl[1,], not_ymd_col, col_names) %>% which %>% min) -1
+}
+# ymdの列
+ymd_cols <- function(tbl, col_num) {
+  return(tbl %>% dplyr::select(c(1:col_num)))
+}
+# それ以外の気象データの列
+clm_cols <- function(tbl, col_num) {
+  return(tbl %>% dplyr::select(-c(1:col_num)))
+}
+
+# ymd
+# 1行目が「集計開始」=> start,「集計終了」=> end
+start_end_vec <- c("集計開始" = "start", "集計終了" = "end")
+# 2行目「年」=> y,「月」=> m,「日」=> d
+ymd_vec <- c("年" = "y", "月" = "m", "日" = "d")
+# 変換後，くっつけて列名に
+make_ymd_rowname <- function(dt, vec1, vec2) {
+  result1 <- vec1[dt[1]]
+  result2 <- vec2[dt[2]]
+  result <- paste(result1, result2, sep="_")
+  return(result)
+}
+
+
+data_tbl <- read_jma(data_file)
+
+# ヘッダ行
+headers_end <- data_tbl %>% header_row_end
+# 年月日列
+ymd_end <- data_tbl %>% ymd_col_end(ymd_col_names)
+
+# data_tbl %>% ymd_cols(ymd_end) %>% header_rows(headers_end)
+# data_tbl %>% clm_cols(ymd_end) %>% header_rows(headers_end)
+# data_tbl %>% ymd_cols(ymd_end) %>% data_rows(headers_end)
+# data_tbl %>% clm_cols(ymd_end) %>% data_rows(headers_end)
+
+ymd_headers_tbl <- data_tbl %>% ymd_cols(ymd_end) %>% header_rows(headers_end)
+# 「集計開始」「集計終了」が入ってない列を穴埋め
+# 一度転置してから下方向に補完して，元に戻す
+ymd_headers_tbl[1,] %<>% t %>% as.data.frame() %>% tidyr::fill(1) %>% t
+ymd_col_name <- apply(ymd_headers_tbl, 2, make_ymd_rowname, start_end_vec, ymd_vec)
+# 年月日のデータに列名つける
+ymd_data_tbl <- data_tbl %>% ymd_cols(ymd_end) %>% data_rows(headers_end)
+names(ymd_data_tbl) <- ymd_col_name
+
+
+# 気象データのヘッダ
+clm_headers_tbl <- data_tbl %>% clm_cols(ymd_end) %>% header_rows(headers_end)
+# 2行目の「(時間)」「(℃)」「(mm)」「の平均」「の合計」削除
+rmv_str_1 <- function(str) {
+  result <- str %>% sub("の.+", "", .) %>% sub("\\(.+", "", .)
+  return(result)
+}
+# 3行目の「番号」「情報」削除
+rmv_str_2 <- function(str) {
+  result <- str %>% sub("情報", "", .) %>% sub("番号", "", .)
+  return(result)
+}
+# 削除した2・3行目"くっつけて列名に
+make_clm_rowname <- function(dt) {
+  result1 <- rmv_str_1(dt[2])
+  result2 <- rmv_str_2(dt[3])
+  result_vec <- c(result1, result2)
+  # result_vec から，NAではない要素を，"_"で連結して返す
+  result <- paste(result_vec[!is.na(result_vec)], collapse="_")
+  return(result)
+}
+
+clm_col_name <- apply(clm_headers_tbl, 2, make_clm_rowname)
+# 気象データに列名つける
+clm_data_tbl <- data_tbl %>% clm_cols(ymd_end) %>% data_rows(headers_end)
+names(clm_data_tbl) <- clm_col_name
+
+```
+
+
+
+
+
 
 
 ```{r}
@@ -139,32 +501,37 @@ newData2_tbl <- data_tbl %>% mutate(place = placeList[1]) %>% dplyr::select(c(1:
 newData2_tbl
 ```
 
+
+
+
+
+
 あとで使うと思うので練習。
 
 日付の列（X1〜X6）と，データの列（X7 以降，1行目が"酒田"）とを分ける。
-```{r}
+```{r eval=FALSE, include=FALSE}
 data_tbl %>% dplyr::select(c(1:6))
 
 # date_tbl <- 
 ```
 
-```{r}
+```{r eval=FALSE, include=FALSE}
 grepl("酒田", primary_row)
 which(grepl(placeList[1], primary_row))
 ```
 
-```{r}
+```{r eval=FALSE, include=FALSE}
 data_tbl %>% dplyr::select(which(grepl(placeList[1], primary_row)))
 ```
 
 さて，newData2_tbl に列名をつける。newData2_tbl の作り方アレンジして，年月日のとこに列名つけながら作ると…
-```{r}
+```{r eval=FALSE, include=FALSE}
 ymd_headers = c(from_y = 1, from_m = 2, from_d = 3, end_y = 4, end_m = 5, end_d = 6)
 newData3_tbl <- data_tbl %>% mutate(place = placeList[1]) %>% dplyr::select(ymd_headers, place, which(grepl("酒田", primary_row)))
 newData3_tbl
 ```
 
 ```{r}
-vignette("introduction", package = "dplyr") 
+
 ```
 
