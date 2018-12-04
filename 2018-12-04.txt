@@ -1,0 +1,35 @@
+chunk: 1. データ読み込み  mode: decl :		# >> 1. データ読み込み >>decl>>
+mode change: c.n: 1. データ読み込み  part: cs :		# 1 cs 1
+mode change: c.n: 1. データ読み込み  part: cs :		  2 cs 2
+mode change: c.n: 1. データ読み込み  part: cs :		
+part: mode: decl :		# >>decl
+mode: decl :		  1 decl 1
+mode: decl :		  1 decl 2
+mode: decl :		
+mode: decl :		# <<< decl : func >>>
+chunk: 1. データ読み込み  mode: func :		# >> 1. データ読み込み >>func>>
+mode change: c.n: 1. データ読み込み  part: cs :		# 1 cs 1
+mode change: c.n: 1. データ読み込み  part: cs :		  2 cs 2
+mode change: c.n: 1. データ読み込み  part: cs :		
+part: mode: func :		# >>func
+mode: func :		  1 func 1
+mode: func :		
+chunk: 2. ヘッダ header  mode: func :		# >> 2. ヘッダ header >>func>>
+mode: func :		
+part: mode: func :		# >>func
+mode: func :		  2 func 1
+mode: func :		  2 func 2
+mode: func :		
+mode: func :		# <<< func : proc >>>
+chunk: 1. データ読み込み  mode: proc :		# >> 1. データ読み込み >>proc>>
+mode change: c.n: 1. データ読み込み  part: cs :		# 1 cs 1
+mode change: c.n: 1. データ読み込み  part: cs :		  2 cs 2
+mode change: c.n: 1. データ読み込み  part: cs :		
+part: mode: proc :		# >>proc
+mode: proc :		  1 proc 1
+mode: proc :		
+chunk: 2. ヘッダ header  mode: proc :		# >> 2. ヘッダ header >>proc>>
+mode: proc :		
+part: mode: proc :		# >>proc
+mode: proc :		  2 proc 1
+mode: proc :		  2 proc 2

@@ -124,9 +124,7 @@ $result6 = [
 # ---------------------
 
 $result7 =<<EOS
-
 # <<< decl : func >>>
-
 # >> 1. データ読み込み >>func>>
 # テスト
   test # テスト2
@@ -138,9 +136,7 @@ read_jma <- function(csv_f) {
 # >>func
         func_2
         test
-
 # <<< func : proc >>>
-
 # >> 1. データ読み込み >>proc>>
 # テスト
   test # テスト2
@@ -185,9 +181,7 @@ $result8_b =<<EOS
 # >>decl
   hoge = 'huga'
   moga = 'moge'
-
 # <<< decl : func >>>
-
 # >> 1. データ読み込み >>func>>
 # テスト
   test # テスト2
@@ -199,9 +193,7 @@ read_jma <- function(csv_f) {
 # >>func
         func_2
         test
-
 # <<< func : proc >>>
-
 # >> 1. データ読み込み >>proc>>
 # テスト
   test # テスト2
@@ -253,9 +245,7 @@ $result9_b =<<EOS
   1 decl 1
   1 decl 2
 
-
 # <<< decl : func >>>
-
 # >> 1. データ読み込み >>func>>
 # 1 cs 1
   2 cs 2
@@ -269,9 +259,7 @@ $result9_b =<<EOS
   2 func 1
   2 func 2
 
-
 # <<< func : proc >>>
-
 # >> 1. データ読み込み >>proc>>
 # 1 cs 1
   2 cs 2
@@ -331,6 +319,12 @@ class SeperateTest <Minitest::Test
           testCD = CodeSeperater.new
           # assert_equal '$result9_b', testCD.toSeperated($test9)
           assert_equal $result9_b, testCD.toSeperated($test9)
+        end
+
+        def test_sep_class_9b_rev
+          testCD = CodeSeperater.new
+          # assert_equal '$result9_b', testCD.toSeperated($test9)
+          assert_equal $result9_a, testCD.fromSeperated($result9_b.split("\n"))
         end
 
 end
