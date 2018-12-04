@@ -6,14 +6,14 @@ require __dir__ + '/fp'
 $test1 =<<EOS.split("\n")
 # >> 1. データ読み込み
 EOS
-$result1 = [{'hash_name' => '1. データ読み込み', 'common_sentence' => [], 'func' => [], 'proc' => []}]
+$result1 = [{'hash_name' => '1. データ読み込み', 'common_sentence' => [], 'decl' => [], 'func' => [], 'proc' => []}]
 
 $test2 =<<EOS.split("\n")
 # >> 1. データ読み込み
 # テスト
   test # テスト2
 EOS
-$result2 = [{'hash_name' => '1. データ読み込み', 'common_sentence' => ['# テスト', '  test # テスト2'], 'func' => [], 'proc' => []}]
+$result2 = [{'hash_name' => '1. データ読み込み', 'common_sentence' => ['# テスト', '  test # テスト2'], 'decl' => [], 'func' => [], 'proc' => []}]
 
 $test3 =<<EOS.split("\n")
 # >> 1. データ読み込み
@@ -24,7 +24,7 @@ read_jma <- function(csv_f) {
       data_file
   # 空行削除
 EOS
-$result3 = [{'hash_name' => '1. データ読み込み', 'common_sentence' => ['# テスト', '  test # テスト2'], 'func' => ['read_jma <- function(csv_f) {', '      data_file', '  # 空行削除'], 'proc' => []}]
+$result3 = [{'hash_name' => '1. データ読み込み', 'common_sentence' => ['# テスト', '  test # テスト2'], 'decl' => [], 'func' => ['read_jma <- function(csv_f) {', '      data_file', '  # 空行削除'], 'proc' => []}]
 
 $test4 =<<EOS.split("\n")
 # >> 1. データ読み込み
@@ -37,7 +37,7 @@ read_jma <- function(csv_f) {
 # >>proc
 data_tbl <- read_jma(data_file)
 EOS
-$result4 = [{'hash_name' => '1. データ読み込み', 'common_sentence' => ['# テスト', '  test # テスト2'], 'func' => ['read_jma <- function(csv_f) {', '      data_file', '  # 空行削除'], 'proc' => ['data_tbl <- read_jma(data_file)']}]
+$result4 = [{'hash_name' => '1. データ読み込み', 'common_sentence' => ['# テスト', '  test # テスト2'], 'decl' => [], 'func' => ['read_jma <- function(csv_f) {', '      data_file', '  # 空行削除'], 'proc' => ['data_tbl <- read_jma(data_file)']}]
 
 $test5 =<<EOS.split("\n")
 # >> 1. データ読み込み
@@ -53,9 +53,21 @@ data_tbl <- read_jma(data_file)
 # >> 2. ヘッダ header 
 
 EOS
-$result5 = [{
-        'hash_name' => '1. データ読み込み', 'common_sentence' => ['# テスト', '  test # テスト2'], 'func' => ['read_jma <- function(csv_f) {', '      data_file', '  # 空行削除'], 'proc' => ['data_tbl <- read_jma(data_file)', '']
-},{'hash_name' => '2. ヘッダ header', 'common_sentence' => [], 'func' => [], 'proc' => []}]
+$result5 = [ \
+  { \
+    'hash_name' => '1. データ読み込み' \
+    , 'common_sentence' => ['# テスト', '  test # テスト2'] \
+    , 'decl' => [] \
+    , 'func' => ['read_jma <- function(csv_f) {', '      data_file', '  # 空行削除'] \
+    , 'proc' => ['data_tbl <- read_jma(data_file)', ''] \
+  },{ \
+    'hash_name' => '2. ヘッダ header' \
+    , 'common_sentence' => [] \
+    , 'decl' => [] \
+    , 'func' => [] \
+    , 'proc' => [] \
+  }
+]
 
 
 $test6 =<<EOS.split("\n")
@@ -77,9 +89,37 @@ data_tbl <- read_jma(data_file)
         proc_2
                 testetst
 EOS
-$result6 = [{
-        'hash_name' => '1. データ読み込み', 'common_sentence' => ['# テスト', '  test # テスト2'], 'func' => ['read_jma <- function(csv_f) {', '      data_file', '  # 空行削除'], 'proc' => ['data_tbl <- read_jma(data_file)', '']
-},{'hash_name' => '2. ヘッダ header', 'common_sentence' => [], 'func' => ['        func_2', '        test'], 'proc' => ['        proc_2', '                testetst']}]
+$result6 = [
+  { \
+    'hash_name' => '1. データ読み込み' \
+    , 'common_sentence' => [ \
+        '# テスト' \
+        , '  test # テスト2' \
+      ] \
+    , 'decl' => [] \
+    , 'func' => [ \
+      'read_jma <- function(csv_f) {' \
+      , '      data_file' \
+      , '  # 空行削除' \
+    ] \
+    , 'proc' => [ \
+      'data_tbl <- read_jma(data_file)' \
+      , '' \
+    ] \
+  },{ \
+    'hash_name' => '2. ヘッダ header' \
+    , 'common_sentence' => [] \
+    , 'decl' => [] \
+    , 'func' => [ \
+      '        func_2' \
+      , '        test'
+    ] \
+    , 'proc' => [
+      '        proc_2' \
+      , '                testetst'
+    ] \
+  } \
+]
 
 # ---------------------
 
@@ -110,6 +150,65 @@ data_tbl <- read_jma(data_file)
                 testetst
 EOS
 
+$test8 =<<EOS.split("\n")
+# >> 1. データ読み込み
+# テスト
+  test # テスト2
+# >>func
+read_jma <- function(csv_f) {
+      data_file
+  # 空行削除
+# >>decl
+  hoge = 'huga'
+  moga = 'moge'
+# >>proc
+data_tbl <- read_jma(data_file)
+
+# >> 2. ヘッダ header 
+# >>func
+        func_2
+        test
+# >>proc
+        proc_2
+                testetst
+EOS
+$result8_a = [{
+        'hash_name' => '1. データ読み込み', 'common_sentence' => ['# テスト', '  test # テスト2'], 'decl' => ["  hoge = 'huga'", "  moga = 'moge'"], 'func' => ['read_jma <- function(csv_f) {', '      data_file', '  # 空行削除'], 'proc' => ['data_tbl <- read_jma(data_file)', '']
+},{'hash_name' => '2. ヘッダ header', 'common_sentence' => [], 'decl' => [], 'func' => ['        func_2', '        test'], 'proc' => ['        proc_2', '                testetst']}]
+$result8_b =<<EOS
+# >> 1. データ読み込み >>decl>>
+# テスト
+  test # テスト2
+# >>decl
+hoge = 'huga'
+moga = 'moge'
+# >> 1. データ読み込み >>func>>
+# テスト
+  test # テスト2
+# >>func
+read_jma <- function(csv_f) {
+      data_file
+  # 空行削除
+# >> 2. ヘッダ header >>func>>
+# >>func
+        func_2
+        test
+
+# <<< func : proc >>>
+
+# >> 1. データ読み込み >>proc>>
+# テスト
+  test # テスト2
+# >>proc
+data_tbl <- read_jma(data_file)
+
+# >> 2. ヘッダ header >>proc>>
+# >>proc
+        proc_2
+                testetst
+EOS
+
+
 
 class SeperateTest <Minitest::Test
         def test_sep_class_1
@@ -139,6 +238,14 @@ class SeperateTest <Minitest::Test
         def test_sep_class_7
           testCD = CodeSeperater.new
           assert_equal $result7, testCD.toSeperated($test6)
+        end
+        def test_sep_class_8a
+          testCD = CodeSeperater.new
+          assert_equal $result8_a, testCD.fromChunked($test8)
+        end
+        def test_sep_class_8b
+          testCD = CodeSeperater.new
+          assert_equal $result8_b, testCD.toSeperated($test8)
         end
       
 end

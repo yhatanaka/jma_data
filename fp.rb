@@ -13,6 +13,10 @@ output_file = ARGV.shift
 # 		, 'hogehuga'
 # 		, 'mogamoge'
 #	]
+# 	decl => array: [
+# 		'hoge = "hega"'
+# 		, 'fuga = "hege"'
+#	]
 # 	func => array: [
 # 		'def hoge(huga) {
 # 			moga
@@ -30,10 +34,11 @@ output_file = ARGV.shift
 class CodeSeperater
 	$chunk_ary = Array.new
 
-	def make_a_chunk_ary(str, cs_ary, f_ary, p_ary)
+	def make_a_chunk_ary(str, cs_ary, d_ary, f_ary, p_ary)
 		result = Hash.new
 		result['hash_name'] = str
 		result['common_sentence'] = cs_ary
+		result['decl'] = d_ary
 		result['func'] = f_ary
 		result['proc'] = p_ary
 		return result
@@ -43,6 +48,9 @@ class CodeSeperater
 		# chunk 名: 
 		# >> hoge
 		chunk_regex = /\#\s*>>\s*(.+)\s*/
+		# 宣言部分: 
+		# >> decl
+		decl_regex = /\#\s*>>\s*decl/
 		# 関数部分: 
 		# >> func
 		func_regex = /\#\s*>>\s*func/
@@ -55,13 +63,17 @@ class CodeSeperater
 		# chunk 名以外をクリア
 		common_sentence_ary = Array.new
 		fp_mode = ''
+		decl_ary = Array.new
 		func_ary = Array.new
 		proc_ary = Array.new
 		chunk_hash = {}
 
 		f.each do |line|
 			# モード切り替え
-			if line =~ func_regex
+			if line =~ decl_regex
+				fp_mode = 'decl'
+			# モード切り替え
+			elsif line =~ func_regex
 				fp_mode = 'func'
 			# モード切り替え
 			elsif line =~ proc_regex
@@ -70,11 +82,12 @@ class CodeSeperater
 			elsif line =~ chunk_regex
 				# 2つ目以降の chunk なら，前の chunk を hash にして追加してから, chunk_name 更新
 				if chunk_hash.size > 0
-					chunk_hash = make_a_chunk_ary(chunk_name, common_sentence_ary, func_ary, proc_ary)
+					chunk_hash = make_a_chunk_ary(chunk_name, common_sentence_ary, decl_ary, func_ary, proc_ary)
 					$chunk_ary.push(chunk_hash)
 					# chunk 名以外をクリア
 					common_sentence_ary = Array.new
 					fp_mode = ''
+					decl_ary = Array.new
 					func_ary = Array.new
 					proc_ary = Array.new
 					chunk_hash = {}
@@ -87,6 +100,8 @@ class CodeSeperater
 				case fp_mode
 				when 'common' then
 					common_sentence_ary.push(line)
+				when 'decl' then
+					decl_ary.push(line)
 				when 'func' then
 					func_ary.push(line)
 				when 'proc' then
@@ -96,7 +111,7 @@ class CodeSeperater
 				end
 			end
 			# 最後の chunk を追加
-			chunk_hash = make_a_chunk_ary(chunk_name, common_sentence_ary, func_ary, proc_ary)
+			chunk_hash = make_a_chunk_ary(chunk_name, common_sentence_ary, decl_ary, func_ary, proc_ary)
 		end # f.each
 		$chunk_ary.push(chunk_hash)
 	end
@@ -112,25 +127,31 @@ class CodeSeperater
 	end
 
 	def toSeperatedFromAry()
+		decl_ary = Array.new
 		func_ary = Array.new
 		proc_ary = Array.new
 		$chunk_ary.each do |chunk|
-			func_ary.push('# >> ' + chunk['hash_name'] + " >>func>>")
-			proc_ary.push('# >> ' + chunk['hash_name'] + " >>proc>>")
 			if chunk['common_sentence'].size > 0
 				func_ary.push(chunk['common_sentence'])
 				proc_ary.push(chunk['common_sentence'])
 			end #if
+			if chunk['decl'].size > 0
+				decl_ary.push('# >> ' + chunk['hash_name'] + " >>decl>>")
+				decl_ary.push('# >>decl')
+				decl_ary.push(chunk['decl'].join("\n"))
+			end #if
 			if chunk['func'].size > 0
+				func_ary.push('# >> ' + chunk['hash_name'] + " >>func>>")
 				func_ary.push('# >>func')
 				func_ary.push(chunk['func'].join("\n"))
 			end #if
 			if chunk['proc'].size > 0
+				proc_ary.push('# >> ' + chunk['hash_name'] + " >>proc>>")
 				proc_ary.push('# >>proc')
 				proc_ary.push(chunk['proc'].join("\n"))
 			end #if
 		end # each
-		return print_arys([func_ary, ['', '# <<< func : proc >>>', ''], proc_ary])
+		return print_arys([decl_ary, func_ary, ['', '# <<< func : proc >>>', ''], proc_ary])
 
 	end
 
