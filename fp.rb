@@ -133,7 +133,7 @@ class CodeSeperater
 				rsltAry.push(srcHash['common_sentence'])
 			end #if
 			rsltAry.push('# >>' + str)
-			rsltAry.push(srcHash[str].join("\n"))
+			rsltAry.push(srcHash[str])
 		end #if
 	end #def
 
@@ -146,7 +146,7 @@ class CodeSeperater
 			makePartCodeFromAry(chunk, 'func', func_ary)
 			makePartCodeFromAry(chunk, 'proc', proc_ary)
 		end # each
-		return print_arys([decl_ary, func_ary, ['', '# <<< func : proc >>>', ''], proc_ary])
+		return print_arys([decl_ary, ["\n# <<< decl : func >>>\n"], func_ary, ["\n# <<< func : proc >>>\n"], proc_ary])
 
 	end
 

@@ -124,6 +124,9 @@ $result6 = [
 # ---------------------
 
 $result7 =<<EOS
+
+# <<< decl : func >>>
+
 # >> 1. データ読み込み >>func>>
 # テスト
   test # テスト2
@@ -182,6 +185,9 @@ $result8_b =<<EOS
 # >>decl
   hoge = 'huga'
   moga = 'moge'
+
+# <<< decl : func >>>
+
 # >> 1. データ読み込み >>func>>
 # テスト
   test # テスト2
@@ -246,6 +252,9 @@ $result9_b =<<EOS
 # >>decl
   1 decl 1
   1 decl 2
+
+
+# <<< decl : func >>>
 
 # >> 1. データ読み込み >>func>>
 # 1 cs 1
