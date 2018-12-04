@@ -180,8 +180,8 @@ $result8_b =<<EOS
 # テスト
   test # テスト2
 # >>decl
-hoge = 'huga'
-moga = 'moge'
+  hoge = 'huga'
+  moga = 'moge'
 # >> 1. データ読み込み >>func>>
 # テスト
   test # テスト2
@@ -208,7 +208,74 @@ data_tbl <- read_jma(data_file)
                 testetst
 EOS
 
+$test9 =<<EOS.split("\n")
+# >> 1. データ読み込み
+# 1 cs 1
+  2 cs 2
 
+# >>func
+  1 func 1
+
+# >>decl
+  1 decl 1
+  1 decl 2
+
+# >>proc
+  1 proc 1
+
+# >> 2. ヘッダ header 
+
+# >>func
+  2 func 1
+  2 func 2
+
+# >>proc
+  2 proc 1
+  2 proc 2
+EOS
+
+$result9_a = [{
+'hash_name' => '1. データ読み込み', 'common_sentence' => ['# 1 cs 1', '  2 cs 2', ''], 'decl' => ["  1 decl 1", "  1 decl 2", ''], 'func' => ['  1 func 1', ''], 'proc' => ['  1 proc 1', '']
+},{'hash_name' => '2. ヘッダ header', 'common_sentence' => [''], 'decl' => [], 'func' => ['  2 func 1', '  2 func 2', ''], 'proc' => ['  2 proc 1', '  2 proc 2']}]
+
+$result9_b =<<EOS
+# >> 1. データ読み込み >>decl>>
+# 1 cs 1
+  2 cs 2
+
+# >>decl
+  1 decl 1
+  1 decl 2
+
+# >> 1. データ読み込み >>func>>
+# 1 cs 1
+  2 cs 2
+
+# >>func
+  1 func 1
+
+# >> 2. ヘッダ header >>func>>
+
+# >>func
+  2 func 1
+  2 func 2
+
+
+# <<< func : proc >>>
+
+# >> 1. データ読み込み >>proc>>
+# 1 cs 1
+  2 cs 2
+
+# >>proc
+  1 proc 1
+
+# >> 2. ヘッダ header >>proc>>
+
+# >>proc
+  2 proc 1
+  2 proc 2
+EOS
 
 class SeperateTest <Minitest::Test
         def test_sep_class_1
@@ -247,5 +314,14 @@ class SeperateTest <Minitest::Test
           testCD = CodeSeperater.new
           assert_equal $result8_b, testCD.toSeperated($test8)
         end
-      
+        def test_sep_class_9a
+          testCD = CodeSeperater.new
+          assert_equal $result9_a, testCD.fromChunked($test9)
+        end
+        def test_sep_class_9b
+          testCD = CodeSeperater.new
+          # assert_equal '$result9_b', testCD.toSeperated($test9)
+          assert_equal $result9_b, testCD.toSeperated($test9)
+        end
+
 end

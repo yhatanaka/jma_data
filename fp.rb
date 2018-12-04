@@ -5,30 +5,30 @@ input_file = ARGV.shift
 output_file = ARGV.shift
 
 
-# chunk_ary : [chunk_hash_1, chunk_hash_2, ...]
+# chunk_ary : [chunk_hash_1,chunk_hash_2,...]
 # chunk-hash : hash: {
 # 	hash_name => # >> 'hoge'
 # 	common_sentence => array : [
 # 		'hogehuga'
-# 		, 'hogehuga'
-# 		, 'mogamoge'
+# 		,'hogehuga'
+# 		,'mogamoge'
 #	]
 # 	decl => array: [
 # 		'hoge = "hega"'
-# 		, 'fuga = "hege"'
+# 		,'fuga = "hege"'
 #	]
 # 	func => array: [
 # 		'def hoge(huga) {
 # 			moga
 # 		}'
-# 		, 'def moge() {
+# 		,'def moge() {
 # 			guga
 # 		}'
 #	]
 #	proc => array: [
 #		'hoge = huga
 #		moge = moga'
-#		, 'guge = guga + gego'
+#		,'guge = guga + gego'
 #	]
 
 class CodeSeperater
@@ -126,30 +126,25 @@ class CodeSeperater
 		toSeperatedFromAry()
 	end
 
+	def makePartCodeFromAry(srcHash, str, rsltAry)
+		if srcHash[str].size > 0
+			rsltAry.push('# >> ' + srcHash['hash_name'] + ' >>' + str + '>>')
+			if srcHash['common_sentence'].size > 0
+				rsltAry.push(srcHash['common_sentence'])
+			end #if
+			rsltAry.push('# >>' + str)
+			rsltAry.push(srcHash[str].join("\n"))
+		end #if
+	end #def
+
 	def toSeperatedFromAry()
 		decl_ary = Array.new
 		func_ary = Array.new
 		proc_ary = Array.new
 		$chunk_ary.each do |chunk|
-			if chunk['common_sentence'].size > 0
-				func_ary.push(chunk['common_sentence'])
-				proc_ary.push(chunk['common_sentence'])
-			end #if
-			if chunk['decl'].size > 0
-				decl_ary.push('# >> ' + chunk['hash_name'] + " >>decl>>")
-				decl_ary.push('# >>decl')
-				decl_ary.push(chunk['decl'].join("\n"))
-			end #if
-			if chunk['func'].size > 0
-				func_ary.push('# >> ' + chunk['hash_name'] + " >>func>>")
-				func_ary.push('# >>func')
-				func_ary.push(chunk['func'].join("\n"))
-			end #if
-			if chunk['proc'].size > 0
-				proc_ary.push('# >> ' + chunk['hash_name'] + " >>proc>>")
-				proc_ary.push('# >>proc')
-				proc_ary.push(chunk['proc'].join("\n"))
-			end #if
+			makePartCodeFromAry(chunk, 'decl', decl_ary)
+			makePartCodeFromAry(chunk, 'func', func_ary)
+			makePartCodeFromAry(chunk, 'proc', proc_ary)
 		end # each
 		return print_arys([decl_ary, func_ary, ['', '# <<< func : proc >>>', ''], proc_ary])
 
@@ -233,3 +228,4 @@ if input_file
 	end # do input_file
 end #if
 
+__END__
