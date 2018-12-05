@@ -156,7 +156,7 @@ class CodeSeperater
 
 	def fromSeperated(f)
 		fromSeperatedToAry(f)
-		# return $chunk_ary
+		return $chunk_ary
 	end
 
 	def fromSeperatedToAry(f)
@@ -175,11 +175,8 @@ class CodeSeperater
 		chunk_name =''
 		mode_temp = ''
 		mode = ''
-		mode_next = ''
-		mode_check = ''
-		# common_sentence_ary = []
-		# part_hash = {'decr' => [], 'func' => [], 'proc' => []}
-# result = ''
+		# mode_next = ''
+		# mode_check = ''
 		f.each do |line|
 			if line =~ chunk_regex
 				chunk_name = $1.strip
@@ -188,37 +185,31 @@ class CodeSeperater
 				end #if
 				mode_temp = $2.strip
 				mode = 'cs'
-				# result += 'chunk: ' + chunk_name + ' mode: ' + $2 + " :\t" + line + "\n"
 				next
 			elsif line =~ border_regex
 				# mode_check = $1
 				# mode_next = $2
-				# result += 'border: ' + $1 + ' : ' + $2 + " :\t" + line + "\n"
 				next
 			elsif line =~ part_regex
 				if part_name_type_ary.include?($1)
 					mode = $1.strip
-					# result += 'part: mode: ' + $1 + " :\t" + line + "\n"
 				end #if
 				next
 			else
 				if mode == 'cs'
 					if !chunk_hash[chunk_name]['common_sentence'].include?(line)
 						chunk_hash[chunk_name]['common_sentence'].push(line)
-						# result += 'mode change: c.n: ' + chunk_name + ' part: cs' + " :\t" + line + "\n"
 					end #if
 					next
 				elsif mode == mode_temp
 					chunk_hash[chunk_name][mode].push(line)
-					# result += 'mode: ' + mode + " :\t" + line + "\n"
 				end #if
 			end #if
 		end # f.each
 		chunk_hash.each do |key, value|
 			chunk_ary_temp.push(value)
 		end #each
-		return chunk_ary_temp
-		# $chunk_ary = chunk_ary_temp
+		$chunk_ary = chunk_ary_temp
 	end
 end #class
 
