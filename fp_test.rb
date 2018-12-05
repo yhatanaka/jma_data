@@ -274,6 +274,32 @@ $result9_b =<<EOS
   2 proc 2
 EOS
 
+$result9_c =<<EOS
+# >> 1. データ読み込み
+# 1 cs 1
+  2 cs 2
+
+# >>decl
+  1 decl 1
+  1 decl 2
+
+# >>func
+  1 func 1
+
+# >>proc
+  1 proc 1
+
+# >> 2. ヘッダ header
+
+# >>func
+  2 func 1
+  2 func 2
+
+# >>proc
+  2 proc 1
+  2 proc 2
+EOS
+
 class SeperateTest <Minitest::Test
         def test_sep_class_1
           testCD = CodeSeperater.new
@@ -317,14 +343,16 @@ class SeperateTest <Minitest::Test
         end
         def test_sep_class_9b
           testCD = CodeSeperater.new
-          # assert_equal '$result9_b', testCD.toSeperated($test9)
           assert_equal $result9_b, testCD.toSeperated($test9)
         end
 
         def test_sep_class_9b_rev
           testCD = CodeSeperater.new
-          # assert_equal '$result9_b', testCD.toSeperated($test9)
-          assert_equal $result9_a, testCD.fromSeperated($result9_b.split("\n"))
+          assert_equal $result9_a, testCD.fromSeperatedAry($result9_b.split("\n"))
+        end
+        def test_sep_class_9b_rev_code
+          testCD = CodeSeperater.new
+          assert_equal $result9_c, testCD.fromSeperated($result9_b.split("\n"))
         end
 
 end

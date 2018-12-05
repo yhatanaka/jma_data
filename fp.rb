@@ -154,7 +154,8 @@ class CodeSeperater
 		return arys.flatten.join("\n")+ "\n"
 	end #def
 
-	def fromSeperated(f)
+# for test
+	def fromSeperatedAry(f)
 		fromSeperatedToAry(f)
 		return $chunk_ary
 	end
@@ -211,6 +212,34 @@ class CodeSeperater
 		end #each
 		$chunk_ary = chunk_ary_temp
 	end
+
+	def fromSeperated(f)
+		fromSeperatedToAry(f)
+		toChunkFromAry()
+	end #def
+	
+	def toChunkFromAry()
+		everyChunkAry = []
+		$chunk_ary.each do |chunk|
+			everyChunkAry.push('# >> ' + chunk['hash_name'])
+			if chunk['common_sentence'].size > 0
+				everyChunkAry.push(chunk['common_sentence'])
+			end #if
+			if chunk['decl'].size > 0
+				everyChunkAry.push('# >>decl')
+				everyChunkAry.push(chunk['decl'])
+			end #if
+			if chunk['func'].size > 0
+				everyChunkAry.push('# >>func')
+				everyChunkAry.push(chunk['func'])
+			end #if
+			if chunk['proc'].size > 0
+				everyChunkAry.push('# >>proc')
+				everyChunkAry.push(chunk['proc'])
+			end #if
+		end #each
+		return everyChunkAry.flatten.join("\n") + "\n"
+	end #def
 end #class
 
 if input_file
