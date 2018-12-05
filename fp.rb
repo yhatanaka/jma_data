@@ -155,7 +155,7 @@ class CodeSeperater
 	end #def
 
 	def fromSeperated(f)
-		fromSeperatedToAry(f)
+		pp fromSeperatedToAry(f)
 		# return $chunk_ary
 	end
 
@@ -168,7 +168,7 @@ class CodeSeperater
 		# パート decr, func, proc
 		part_name_type_ary = ['decl', 'func', 'proc']
 		# パート切り替え
-		border_regex = /\s*#\s*<<<(\S+) : (\S+)\s*>>>\s*/
+		border_regex = /\s*#\s*<<<\s*(\S+)\s*:\s*(\S+)\s*>>>\s*/
 		
 		chunk_ary_temp = Array.new
 		chunk_hash = {}
@@ -179,33 +179,43 @@ class CodeSeperater
 		mode_check = ''
 		# common_sentence_ary = []
 		# part_hash = {'decr' => [], 'func' => [], 'proc' => []}
-result = ''
+# result = ''
 		f.each do |line|
 			if line =~ chunk_regex
 				chunk_name = $1
 				unless chunk_hash.has_key?(chunk_name)
-					chunk_hash = {chunk_name => {'hash_name' => chunk_name, 'cs' => [], 'decl' => [], 'func' => [], 'proc' => []}}
+					chunk_hash[chunk_name] = {'hash_name' => chunk_name, 'cs' => [], 'decl' => [], 'func' => [], 'proc' => []}
 				end #if
 				mode_temp = $2
-				result += 'chunk: ' + chunk_name + ' mode: ' + $2 + " :\t" + line + "\n"
+				mode = 'cs'
+				# result += 'chunk: ' + chunk_name + ' mode: ' + $2 + " :\t" + line + "\n"
+				next
 			elsif line =~ border_regex
 				# mode_check = $1
 				# mode_next = $2
-				result += 'border: ' + $1 + ' : ' + $2 + " :\t" + line + "\n"
+				# result += 'border: ' + $1 + ' : ' + $2 + " :\t" + line + "\n"
+				next
 			elsif line =~ part_regex
 				if part_name_type_ary.include?($1)
 					mode = $1
-					result += 'part: mode: ' + $1 + " :\t" + line + "\n"
+					# result += 'part: mode: ' + $1 + " :\t" + line + "\n"
 				end #if
-			elsif mode != mode_temp
-				chunk_hash[chunk_name]['cs'].push(f)
-				result += 'mode change: c.n: ' + chunk_name + ' part: cs' + " :\t" + line + "\n"
-			elsif mode == mode_temp
-				chunk_hash[chunk_name][mode].push(f)
-				result += 'mode: ' + mode + " :\t" + line + "\n"
+				next
+			else
+				if mode == 'cs'
+					if chunk_hash[chunk_name]['cs'].size == 0
+						chunk_hash[chunk_name]['cs'].push(line)
+						# result += 'mode change: c.n: ' + chunk_name + ' part: cs' + " :\t" + line + "\n"
+					end #if
+					next
+				elsif mode == mode_temp
+					chunk_hash[chunk_name][mode].push(line)
+					# result += 'mode: ' + mode + " :\t" + line + "\n"
+				end #if
 			end #if
 		end # f.each
-		return result
+		# return result
+		return chunk_hash
 		# chunk_hash.each do |key, value|
 		# 	chunk_ary_temp.push(value)
 		# end #each
