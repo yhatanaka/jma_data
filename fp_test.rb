@@ -1,6 +1,6 @@
 #!/usr/bin/ruby
 require 'minitest/autorun'
-
+require 'pp'
 require __dir__ + '/fp'
 
 $test1 =<<EOS.split("\n")
