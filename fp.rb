@@ -243,8 +243,9 @@ class CodeSeperater
 end #class
 
 if input_file
+	CodeFP = CodeSeperater.new
 	open(input_file,'r') do |f|
-		seperate_all_chunk(f)
+		puts CodeFP.fromSeperated(f)
 	end # do input_file
 end #if
 
