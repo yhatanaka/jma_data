@@ -1,0 +1,26 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+
+```{r}
+plot(cars)
+```
+```{r}
+nms <- names(iris)
+library("tidyverse")
+library("tidyselect")
+# str(vars_select(nms, starts_with("Petal")))
+# vars_select(nms, ends_with("Width"))
+vars_select(nms, contains("etal"))
+# vars_select(nms, matches(".t."))
+# vars_select(nms, Petal.Length, Petal.Width)
+# vars_select(nms, everything())
+# vars_select(nms, last_col())
+# vars_select(nms, last_col(offset = 2))
+# 
+vars <- c("Petal.Length", "Petal.Width")
+vars_select(nms, one_of(vars))
+
+```
+
