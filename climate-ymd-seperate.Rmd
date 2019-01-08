@@ -8,10 +8,6 @@ output:
     toc: yes
 ---
 
-```{r eval=FALSE, include=FALSE}
-plot(cars)
-```
-
 (初回だけ)パッケージのインストール
 ```{r eval=FALSE, include=FALSE}
 #パッケージのインストール

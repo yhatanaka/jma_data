@@ -1,19 +1,50 @@
 ---
-title: "R Notebook"
+title: "2地点以上"
 output: html_notebook
+    fig_height: 7
+    fig_width: 7
+    smart: no
+    toc: yes
 ---
 
-This is an [R Markdown](http://rmarkdown.rstudio.com) Notebook. When you execute code within the notebook, the results appear beneath the code. 
-
-Try executing this chunk by clicking the *Run* button within the chunk or by placing your cursor inside it and pressing *Cmd+Shift+Enter*. 
-
+パッケージの読み込み
 ```{r}
-plot(cars)
+#パッケージの読み込み
+library("tidyverse")
+library("magrittr")
 ```
 
-Add a new chunk by clicking the *Insert Chunk* button on the toolbar or by pressing *Cmd+Option+I*.
+データ用フォルダのファイル読み込み
+```{r}
+data_fldr <- './data'
+file_list <- list.files(path = data_fldr, full.names = TRUE, pattern = '*\\.csv')
+data_tbls <- lapply(file_list, read_csv, col_names = FALSE, skip = 1, locale = locale(encoding = "cp932"))
+```
 
-When you save the notebook, an HTML file containing the code and output will be saved alongside it (click the *Preview* button or press *Cmd+Shift+K* to preview the HTML file). 
+```{r}
+# >>  2. ヘッダ header >>func>
+# >>func
+# ヘッダとして扱うのは何行目までか
+# 先頭から"NA"が続く最後の行までが項目名。その後のちゃんと数字が始まる（NA じゃない）行からがデータ。
+# ヘッダの行の最後は，as.numeric が NA 「ではない」（つまり数字）一番始めの（つまりデータの始まる）行の一つ前まで
+header_row_end <- function(tbl) {
+  result <- (tbl[,1] %>% purrr::map(as.numeric) %>% map({~ !is.na(.)}) %>% flatten_lgl %>% which %>% min)-1
+  return(result)
+}
 
-The preview shows you a rendered HTML copy of the contents of the editor. Consequently, unlike *Knit*, *Preview* does not run any R code chunks. Instead, the output of the chunk when it was last run in the editor is displayed.
+
+```
+
+
+```{r}
+# >> 2. ヘッダ header 最終行 >>proc>>
+# >>proc
+# headers_end <- data_tbl %>% header_row_end
+data_tbls[[1]][,1] %>% glimpse()
+is_ymd <- function(str){
+  return(str_detect(str, pattern = '[0-9/]+'))
+}
+data_tbls[[1]][,1] %>% purrr::map(is_ymd)
+# headers_end_s <- data_tbls[[1]] %>% header_row_end %>% glimpse()
+```
 

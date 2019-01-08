@@ -43,7 +43,6 @@ header_row_end <- function(tbl) {
 # >>proc
 headers_end <- data_tbl %>% header_row_end
 
-
 # >>  3. 年月日 ymd >>func>>
 ymd_col_names = c("集計開始", "集計終了")
 # >>func
@@ -184,6 +183,7 @@ comp_y_m <- function(y,m){
   str_c(y_str,m_str_2,sep='/')
 }
 month_sun_rain_tmpr %<>% mutate(ym=comp_y_m(start_y,start_m)) %>% glimpse()
+
 
 ggplot()+theme_set(theme_bw(base_size = 6,base_family="HiraKakuProN-W3"))
 ggplot(data=month_sun_rain_tmpr) + geom_point(mapping = aes(x=ym, y=rain.total))
