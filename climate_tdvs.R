@@ -150,7 +150,11 @@ placeList <- first_row %>% clm_cols(ymd_end) %>% as.matrix() %>% as.vector() %>%
 # 年月日の列名と("place"と)気象の列名つなげて，データに列名つける
 # names(data_tbl) <- c(ymd_col_name, clm_col_name)
 # データのヘッダ部分削除。地名の列 place 作る。開始年・月・日から日付の列 date 作る。date，年月日，地名，データの順に並べる
-named_tbl <- data_tbl %>% data_rows(headers_end) %>% mutate(place = placeList[1]) %>% mutate(date = as.Date(str_c(.$X1,.$X2,.$X3, sep='/'))) %>% dplyr::select(date, c(1:ymd_end), place, which(grepl(placeList[1], first_row_vec)))
+# named_tbl <- data_tbl %>% data_rows(headers_end) %>% mutate(place = placeList[1]) %>% mutate(date = as.Date(str_c(.$X1,.$X2,.$X3, sep='/'))) %>% dplyr::select(date, c(1:ymd_end), place, which(grepl(placeList[1], first_row_vec)))
+# データのヘッダ部分削除。地名の列 place 作る。開始年・月・日から日付の列 date 作る。date，年月日，地名，データの順に並べる
+named_tbl <- data_tbl %>% data_rows(headers_end) %>% mutate(place = placeList[1]) %>% mutate(st_date = as.Date(str_c(.$X1,.$X2,.$X3, sep='/'))) %>% dplyr::select(st_date, c(1:ymd_end), place, which(grepl(placeList[1], first_row_vec)))
+# 年月日の列名と("place"と)気象の列名つなげて，データに列名つける
+names(named_tbl) <- c("st_date", ymd_col_name, "place", clm_col_name)
 
 # start_m, start_d は 0 padding。
 padding_date <- function(str){
