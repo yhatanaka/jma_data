@@ -1,0 +1,30 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+
+```{r include=FALSE}
+library("tidyverse")
+library("magrittr")
+
+```
+
+
+```{r}
+names(cherry_high_over0) <- c('day_deffer')
+cherry_high_over0 %>% summarise(mean = mean(day_deffer))
+x_axis <- 'day_deffer'
+# y_axis <- '平均気温'
+# y_crit <- y_axis
+this_aes <- aes_string(x=x_axis)
+# this_aes <- aes_string(x=x_axis, y=y_axis)
+
+
+g <- ggplot(data = cherry_high_over0)
+g <- g + theme_set(theme_bw(base_size = 12,base_family='HiraKakuProN-W3'))
+# g <- g + geom_boxplot(mapping = this_aes, alpha=0.4, notch = TRUE, na.rm = TRUE, colour = '#00009999',data=result_m_d %>% filter(NA_y!='2019'))
+g <- g + geom_histogram(mapping = this_aes)
+plot(g)
+
+```
+
