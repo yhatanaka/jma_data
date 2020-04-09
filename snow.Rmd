@@ -1,0 +1,56 @@
+---
+title: "鳥海山初冠雪"
+output: html_notebook
+---
+
+This is an [R Markdown](http://rmarkdown.rstudio.com) Notebook. When you execute code within the notebook, the results appear beneath the code. 
+
+Try executing this chunk by clicking the *Run* button within the chunk or by placing your cursor inside it and pressing *Cmd+Shift+Enter*. 
+
+```{r include=FALSE}
+library("tidyverse")
+library("magrittr")
+
+```
+```{r}
+snow
+hist(snow$date)
+boxplot(snow$date)
+
+y_axis <- 'date'
+y_crit <- y_axis
+this_aes <- aes_string(y=y_axis)
+
+g <- ggplot(data = snow)
+g <- g + theme_set(theme_bw(base_size = 12,base_family='HiraKakuProN-W3'))
+# g <- g + geom_boxplot(mapping = this_aes, alpha=0.4, notch = TRUE, na.rm = TRUE, colour = '#00009999',data=result_m_d %>% filter(NA_y!='2019'))
+g <- g + geom_boxplot(mapping = aes_string(y=y_axis), alpha=0.4, notch = TRUE, na.rm = TRUE, colour = '#00009999',data=snow)
+g <- g + theme(axis.text.x = element_text(angle = 90, hjust = 1))
+plot(g)
+```
+
+```{r}
+snow_19 <- snow %>% filter(year < 2000)
+snow_20 <- snow %>% filter(year >= 2000)
+```
+
+```{r}
+boxplot(snow_19$date,snow_20$date)
+```
+
+
+```{r}
+list_snow <- list(snow_19, snow_20)
+y_axis <- 'date'
+y_crit <- y_axis
+this_aes <- aes_string(y=y_axis)
+
+g <- ggplot(data = snow)
+g <- g + theme_set(theme_bw(base_size = 12,base_family='HiraKakuProN-W3'))
+g <- g + geom_boxplot(mapping = aes_string(y=y_axis), alpha=0.4, notch = TRUE, na.rm = TRUE, colour = '#00009999',data=snow_19)
+g <- g + geom_boxplot(mapping = aes_string(y=y_axis), alpha=0.4, notch = TRUE, na.rm = TRUE, colour = '#99000099',data=snow_20)
+g <- g + theme(axis.text.x = element_text(angle = 90, hjust = 1))
+plot(g)
+
+```
+

@@ -1,0 +1,65 @@
+---
+title: "生物季節(春)"
+output: html_notebook
+---
+
+```{r}
+library("tidyverse")
+library("magrittr")
+
+```
+
+```{r}
+readDataFile <- function(csv_f) {
+  f <-
+    read_csv(
+      csv_f
+      ,
+      col_names = TRUE
+      ,
+      skip = 0
+      ,
+      locale = locale(encoding = "UTF8")
+    )
+  # 空行削除
+  return(f %>% filter(rowSums(is.na(.)) != ncol(.)))
+  
+}
+
+data_file <- '2020-03_seasons.csv'
+seasonData <- readDataFile(data_file)
+
+```
+```{r}
+seasonData_longer <- seasonData %>% pivot_longer(col = -1, names_to = "species", values_to = "date")
+```
+
+
+```{r}
+x_axis <- 'species'
+# y_axis <- 'stm_h_5'
+# y_axis <- 'stm_5'
+# y_axis <- 'stm_3'
+# y_axis <- 'stm_0'
+y_axis <- 'date'
+
+this_aes <- aes_string(x=x_axis, y=y_axis, colour='species', group='species')
+g <- ggplot(data = seasonData_longer)
+# g <- g + geom_density(alpha=0.05,mapping = this_aes)
+g <- g + theme_set(theme_bw(base_size = 4,base_family='HiraKakuProN-W3'))
+# g <- g + geom_boxplot(mapping = this_aes, alpha=0.4, notch = TRUE, na.rm = TRUE, colour = '#00009999',data=result_stm_prev )
+# g <- g + geom_point(mapping = this_aes, alpha=0.4, na.rm = TRUE, data=)
+# g <- g + geom_point(mapping = this_aes, alpha=0.4, na.rm = TRUE, colour = '#99000099',data=thisYear)
+# 開花日の箱ヒゲ図
+g <- g + geom_boxplot(mapping = this_aes,lwd=0.4, alpha=0.4, notch = TRUE, na.rm = TRUE)
+g <- g + scale_x_discrete(limits=c('ひばり初鳴', 'ツバキ', 'ウメ', 'モンシロチョウ', 'たんぽぽ', 'サクラ', 'トノサマガエル初見', 'ウグイス', 'ツバメ初見', 'サクラ満開'))
+plot(g)
+
+```
+```{r}
+pdf_file_name <- str_c(y_axis,'.pdf')
+quartz(type='pdf', file=pdf_file_name)
+plot(g)
+dev.off()
+
+```

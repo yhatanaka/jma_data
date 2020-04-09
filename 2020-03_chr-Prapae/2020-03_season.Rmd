@@ -1,0 +1,275 @@
+---
+title: "2020-03_生物季節"
+output: html_notebook
+date: "`r Sys.Date()`"
+
+---
+
+date: `r Sys.Date()`
+
+```{r}
+# source('../jma/jma_func.r')
+source('../jma/jma_class.r')
+spring_temp_2020 <- Jma$new('./')
+```
+
+```{r}
+allData <- spring_temp_2020$allData()
+allData
+# allData %>% filter(y == 2020)
+```
+```{r}
+read_jma <- function(csv_f) {
+  f <-
+    read_csv(
+      csv_f
+      # , col_names = FALSE
+      # , skip = 1
+      # , locale = locale(encoding = "cp932")
+    )
+  # 空行削除
+  return(f %>% filter(rowSums(is.na(.)) != ncol(.)))
+}
+# d: 開花日，Dd: 起算開始日からの補正
+sakata_chr <- read_jma("unuse/sakata_chr_1990-2019.csv")
+# sakata_chr
+# 年
+sakata_chr_y <- sakata_chr$y
+# 開花日（4/d）
+sakata_chr_d <- sakata_chr$d
+# sakata_chr_d[!is.na(sakata_chr_d)] %>% min
+sakata_chr_Dd <- sakata_chr$Dd
+# 開花日の年月日
+sakata_chr_d2 <- str_c(sakata_chr$y, '-4-', sakata_chr_d) %>% as.Date
+# sakata_chr_y
+# sakata_chr_d
+# sakata_chr_d2
+# 年を列名に（Hash的構造）
+names(sakata_chr_d2) <- sakata_chr_y
+names(sakata_chr_Dd) <- sakata_chr_y
+sakata_chr_Dd
+```
+
+
+```{r}
+# start_m, start_d は 0 padding。
+padding_date <- function(str){
+  result <- str_sub(str_c('0',str), start = -2, end = -1)
+  return(result)
+}
+result_m_d <- allData %>% mutate(m_d = str_c(start_m %>% padding_date, start_d %>% padding_date,sep='/') %>% as.factor)
+
+result_stm <- result_m_d %>%
+  mutate(eff_tmp_5 = if_else(condition = 平均気温>5, 平均気温-5, 0)) %>%
+  mutate(eff_tmp_0 = if_else(condition = 平均気温>0, 平均気温, 0)) %>%
+  mutate(eff_tmp_3 = if_else(condition = 平均気温>3, 平均気温-3, 0)) %>%
+  # mutate(eff_h_tmp_0 = if_else(condition = 最高気温>0, 最高気温, 0))
+  mutate(eff_h_tmp_5 = if_else(condition = 最高気温>5, 最高気温-5, 0))
+result_stm %<>% group_by(start_y) %>%
+  mutate(stm_5=cumsum(eff_tmp_5)) %>%
+  mutate(stm_0=cumsum(eff_tmp_0)) %>%
+  mutate(stm_3=cumsum(eff_tmp_3)) %>%
+  # mutate(stm_h_0=cumsum(eff_h_tmp_0)) %>% 
+  mutate(stm_h_5=cumsum(eff_h_tmp_5))
+
+result_stm %>% ungroup()
+
+# 温度特性値 E alpha 15~18 kcal/mol avr 16.8kcal or 70kJ/mol
+const_E_alpha <- 79000
+# const_E_alpha <- 71100
+# モル気体定数 1.987 cal/K*mol = 8.314 J/K*mon
+const_R <- 8.314
+# 標準温度 Ts
+const_Ts <- 15
+# 絶対温度と摂氏の変換
+const_Ta <- 273.15
+# 平均温度Tが標準温度Tsの何日分に相当するか
+calc_ts <- function(T) {
+  result <- exp(const_E_alpha/const_R*(T - const_Ts)/((T+const_Ta)*(const_Ts+const_Ta)))
+  return(result)
+}
+
+
+```
+
+
+```{r}
+# 起算日 m月d日以後を累算する場合，c(m,d)
+Ds <- '01/15'
+# after_Ds <- function(aDate, Ds) {
+#   DsOfThisYear <- as.Date(format(aDate, format=str_c("%Y/",Ds[1],'/',Ds[2])))
+#   if (aDate < DsOfThisYear) {
+#     result = FALSE
+#   } else {
+#     result = TRUE
+#   }
+#   return(result)
+# }
+
+# m月d日以後のデータ
+
+# result_stm2 <- result_stm %>% filter( st_date %>% after_Ds(Ds) )
+# result_stm2 <- result_stm %>% filter(!(st_date < as.Date(format(st_date, format=str_c("%Y/",Ds[1],'/',Ds[2])))))
+# この日以降のデータにフラグたてて，filter
+# result_stm2 %<>% mutate(dts_flag = if_else(condition = (st_date >= sakata_chr_d2[start_y]), true = TRUE, false = FALSE ))
+# 起算開始日　ある年月日と起算開始日の月日から，その年の起算開始日を返す
+startDTSDay <- function(aDate, DsVec) {
+  sDateYear <- aDate %>% format(format=str_c("%Y"))
+  startDTSDateOfThidYear <- aDate %>% format(format=str_c("%Y/",Ds))
+  # startDTSDateOfThidYear <- aDate %>% format(format=str_c("%Y/",Ds)) %>% as.Date + sakata_chr_Dd[sDateYear]
+  return(startDTSDateOfThidYear)
+}
+# 起算開始日以降にフラグ
+result_stm2 <- result_stm%>% mutate(
+  dts_flag = if_else(
+    condition = (
+      st_date >= st_date %>% startDTSDay(Ds)
+    ), true = TRUE, false = FALSE
+  )
+)
+result_stm2 %<>% filter(dts_flag)
+
+
+# 起算開始日以降を積算
+result_stm2 %<>% mutate(DTS = calc_ts(平均気温))
+result_stm2 %<>% group_by(start_y) %>% mutate(DTSsum=cumsum(DTS))
+
+
+# result_stm_prev <- result_stm %>% ungroup() %>% filter(y_num < 2019) %>% group_by(m_d)
+# result_stm_this <- result_stm %>% ungroup() %>% filter(y_num == 2019) %>% select(m_d,stm_0,stm_5,stm_3,stm_h_5)
+# thisYear <- result_stm %>% filter(y == 2020)
+result_stm2 %>% ungroup()
+```
+
+
+
+```{r}
+x_axis <- 'x_date'
+# y_axis <- 'stm_h_5'
+# y_axis <- 'stm_5'
+# y_axis <- 'stm_3'
+# y_axis <- 'stm_0'
+y_axis <- 'DTSsum'
+
+# グラフ横軸用（工夫次第で不要？）
+testData <- result_stm2 %>% mutate(x_date = as.Date(format(st_date, format="2020/%m/%d")))
+# 開花日にフラグ
+testData %<>% mutate(actual_flag = if_else(condition = (st_date == sakata_chr_d2[start_y]), true = TRUE, false = FALSE ))
+
+testData %>% ungroup()
+
+# testData2 %>% group_by(start_y)
+# testData3 <- testData2[order(testData2$x_date),]
+# testData3 %>% group_by(start_y)
+
+# testData2
+# 開花日を抽出
+testData_actual <- testData %>% filter(actual_flag) %>% dplyr::select(x_axis,start_y,y_axis,actual_flag)
+testData_actual
+
+```
+```{r}
+testData %>% ungroup()
+
+# データの最終日
+# last_day <- result_stm2$st_date %>% max
+last_day <- testData %>% filter(st_date == result_stm2$st_date %>% max)
+# last_day$st_date
+# last_day$DTSsum
+# 最終日の年，月日
+last_year <- last_day$start_y %>% as.character
+lastday_m_d <- last_day$st_date %>% format(format="/%m/%d")
+
+# 最終日以降の予想データ
+# lastday_m_d
+# 前年までの，「最終日の月日」以降のデータ　年を最終日の年に変えたら最終日より後になる日
+testData_predict <- testData %>% filter(str_c(last_year, st_date %>% format(format="/%m/%d")) %>% as.Date >= last_day$st_date %>% as.Date)
+testData_predict %<>% mutate(predict_stm = case_when(
+  str_c(last_year, st_date %>% format(format="/%m/%d")) %>% as.Date > last_day$st_date %>% as.Date ~ DTS,
+  str_c(last_year, st_date %>% format(format="/%m/%d")) %>% as.Date == last_day$st_date %>% as.Date ~ last_day$DTSsum,
+  TRUE ~ 0
+))
+testData_predict %<>% group_by(start_y) %>% mutate(predict_stmsum = cumsum(predict_stm))
+
+# last_day
+```
+
+
+```{r}
+this_aes <- aes_string(x=x_axis, y=y_axis, colour='start_y', group='start_y')
+this_aes2 <- aes_string(x=x_axis, y='predict_stmsum', group='start_y')
+g <- ggplot(data = testData)
+# g <- g + geom_density(alpha=0.05,mapping = this_aes)
+g <- g + theme_set(theme_bw(base_size = 4,base_family='HiraKakuProN-W3'))
+# g <- g + geom_boxplot(mapping = this_aes, alpha=0.4, notch = TRUE, na.rm = TRUE, colour = '#00009999',data=result_stm_prev )
+# g <- g + geom_point(mapping = this_aes, alpha=0.4, na.rm = TRUE, data=)
+# g <- g + geom_point(mapping = this_aes, alpha=0.4, na.rm = TRUE, colour = '#99000099',data=thisYear)
+# 前年までのデータ
+g <- g + geom_path(mapping = this_aes, na.rm = TRUE, alpha=0.1,data = testData %>% filter(start_y != 2020))
+# 今年の予想範囲
+# , linetype="dashed", 
+g <- g + geom_path(mapping = this_aes2, na.rm = TRUE, alpha=0.1,size=1, data = testData_predict %>% filter(start_y != 2020))
+
+# 今年のデータ
+g <- g + geom_path(mapping = this_aes, na.rm = TRUE, alpha=1,data = testData %>% filter(start_y == 2020))
+# 開花日の箱ヒゲ図
+g <- g + geom_boxplot(mapping = aes_string(x=x_axis, y=y_axis),lwd=0.4, alpha=0.4, notch = TRUE, na.rm = TRUE, colour = '#00009999',data=testData_actual)
+# 開花日の散布図
+g <- g + geom_point(mapping = this_aes, alpha=0.8, na.rm = TRUE, data=testData_actual)
+
+# 今年の予想範囲の箱ヒゲ図
+testData_predict %>% ungroup()
+g <- g + geom_boxplot(mapping = aes_string(x=x_axis, y='predict_stmsum', group=x_axis),lwd=0.1, alpha=0.4, notch = TRUE, na.rm = TRUE, colour = '#00009999',data=testData_predict)
+
+# g <- g + scale_y_continuous(breaks=c('0210',56,60,66,72))
+# g <- g + geom_boxplot(mapping = aes_string(x=x_axis, y=y_axis, group='m_jun'), alpha=0.4, notch = TRUE, na.rm = TRUE, colour = '#00009999',data=result_m_d %>% filter(y_num > 2008) %>% filter(NA_y!='2019') %>% group_by(m_jun))
+# g <- g + theme(axis.text.x = element_text(angle = 90, hjust = 1))
+# g <- g + labs(title = str_c(y_axis,'〜',sep=' '))
+plot(g)
+```
+```{r}
+pdf_file_name <- str_c(y_axis, '.pdf')
+quartz(type='pdf', file=pdf_file_name)
+plot(g)
+dev.off()
+
+```
+
+```{r}
+# 2/1 〜 4/28
+# testData <- result_stm %>% filter((as.numeric(as.character(m_d) %>% str_replace('/','')) > 200) & (as.numeric(as.character(m_d) %>% str_replace('/','')) < 429))
+# testData <- result_stm %>% filter((start_y == 2019 | start_y == 2020) & ((as.numeric(as.character(m_d) %>% str_replace('/','')) > 200) & (as.numeric(as.character(m_d) %>% str_replace('/','')) < 429)))
+
+# testData <- result_stm %>% filter((start_y == 2019 | start_y == 2020) & (as.numeric(as.character(start_m)) > 1)
+# testData <- result_stm %>% filter((start_y == 2019 || start_y == 2020) && start_m > 1)
+# testData %>% filter(start_y == 2020)
+```
+
+```{r}
+# data_file = 'day_sep.csv'
+# data_file = 'hanjun_sep.csv'
+# data_file = 'jun_sep.csv'
+# data_file = 'month_sep.csv'
+
+# data_file = 'day_join.csv'
+# data_file = 'hanjun_join.csv'
+# data_file = 'jun_join.csv'
+# data_file = 'month_join.csv'
+
+
+
+result_m_d <- result %>% mutate(m_d = str_c(start_m %>% padding_date,start_d %>% padding_date,sep='/') %>% as.factor)
+# result_m_d %<>% mutate(y_type = if_else(condition = NA_y == 2019, "this", "prev"))
+result_m_d %<>% mutate(y_num = as.numeric(as.character(start_y)))
+result_m_d %<>% mutate(
+  jun = case_when(
+    as.numeric(as.character(start_d)) < 11 ~ '上旬',
+    between(as.numeric(as.character(start_d)), 11, 20) ~ '中旬',
+    between(as.numeric(as.character(start_d)), 21, 31) ~ '下旬'
+  )
+)
+result_m_d %<>% mutate(m_jun = str_c(as.character(start_m),jun,sep='月'))
+result_m_d %>% group_by(m_d)
+
+
+```
