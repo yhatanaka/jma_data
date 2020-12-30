@@ -1,0 +1,51 @@
+---
+title: "2020 梅雨"
+output: html_notebook
+date: "`r Sys.Date()`"
+
+---
+
+```{r}
+source('../jma/jma_class_2.r')
+tsuyu_2020 <- Jma$new('./')
+
+```
+
+```{r}
+allData <- tsuyu_2020$allData()
+# start_m, start_d は 0 padding。
+padding_date <- function(str){
+  result <- str_sub(str_c('0',str), start = -2, end = -1)
+  return(result)
+}
+result_m_d <- allData %>% mutate(m_d = str_c(start_m %>% padding_date, start_d %>% padding_date,sep='/') %>% as.factor)
+result_m_d
+
+```
+
+```{r}
+# result_m_d %>% group_by(start_y) %>% group_by(start_m) %>% mutate(m_rain = sum(降水量))
+result_m_d_2 <- result_m_d %>% group_by(start_y) %>% group_by(start_m, .add = TRUE) %>% mutate(m_rain = sum(降水量))
+result_m_d_2 %>% group_by(start_y) %>% group_by(start_m, .add = TRUE) %>% mutate(m_rank = min_rank(desc(m_rain)))
+```
+
+```{r}
+x_axis <- 'start_m'
+y_axis <- '降水量'
+this_aes <- aes_string(x=x_axis, y=y_axis, colour='start_y', group='start_y')
+g <- ggplot(data = result_m_d)
+# g <- g + geom_density(alpha=0.05,mapping = this_aes)
+g <- g + theme_set(theme_bw(base_size = 4,base_family='HiraKakuProN-W3'))
+g <- g + geom_path(mapping = this_aes, na.rm = TRUE, alpha=0.1,data = result_m_d %>% filter(start_y != 2020))
+g <- g + geom_path(mapping = this_aes, na.rm = TRUE, alpha=1,data = result_m_d %>% filter(start_y == 2020))
+
+plot(g)
+```
+
+```{r}
+pdf_file_name <- str_c(y_axis, '.pdf')
+quartz(type='pdf', file=pdf_file_name)
+plot(g)
+dev.off()
+
+```
