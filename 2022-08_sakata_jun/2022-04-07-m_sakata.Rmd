@@ -1,0 +1,136 @@
+---
+title: "酒田平年値"
+output: html_notebook
+date: "`r Sys.Date()`"
+---
+
+date: `r Sys.Date()`
+```{r eval=FALSE, include=FALSE}
+install.packages('tidyverse')
+```
+
+
+```{r}
+source('../jma/jma_class_2.r')
+sakata_old <- Jma$new('./')
+```
+
+```{r}
+allData <- sakata_old$allData()
+allData %<>% mutate(降水量_平年値 = 降水量_平年値 %>% as.character() %>% as.numeric()) %>% mutate(平均気温_平年値 = 平均気温_平年値 %>% as.character() %>% as.numeric()) %>% mutate(日照時間_平年値 = 日照時間_平年値 %>% as.character() %>% as.numeric())
+# allData %<>% group_by(start_m) %>% mutate(降水量_平年値 %<>% as.character() %>% as.numeric())
+```
+```{r}
+x_axis <- 'st_date'
+y_axis <- '降水量'
+this_aes <- aes_string(x=x_axis, y=y_axis)
+g <- ggplot(data = allData)
+# g <- g + geom_density(alpha=0.05,mapping = this_aes)
+g <- g + theme_set(theme_bw(base_size = 4,base_family='HiraKakuProN-W3'))
+# g <- g + geom_boxplot(mapping = this_aes, alpha=0.4, notch = TRUE, na.rm = TRUE, colour = '#00009999',data=result_stm_prev )
+# g <- g + geom_point(mapping = this_aes, alpha=0.4, na.rm = TRUE, data=)
+# g <- g + geom_point(mapping = this_aes, alpha=0.4, na.rm = TRUE, colour = '#99000099',data=thisYear)
+# 今年の予想範囲
+# , linetype="dashed", 
+g <- g + geom_point(mapping = this_aes, na.rm = TRUE, alpha = 0.7, size=2, colour = "blue")
+
+y_axis2 <- y_axis %>% str_c('_平年値')
+this_aes2 <- aes_string(x=x_axis, y=y_axis2)
+g <- g + geom_point(mapping = this_aes2, na.rm = TRUE, alpha = 0.5, size = 1)
+# 前年までのデータ
+plot(g)
+
+```
+
+```{r}
+pdf_file_name <- str_c(y_axis, '.pdf')
+quartz(type='pdf', file=pdf_file_name)
+plot(g)
+dev.off()
+
+```
+```{r}
+x_axis <- 'st_date'
+y_axis <- '日照時間'
+this_aes <- aes_string(x=x_axis, y=y_axis)
+g <- ggplot(data = allData)
+# g <- g + geom_density(alpha=0.05,mapping = this_aes)
+g <- g + theme_set(theme_bw(base_size = 4,base_family='HiraKakuProN-W3'))
+# g <- g + geom_boxplot(mapping = this_aes, alpha=0.4, notch = TRUE, na.rm = TRUE, colour = '#00009999',data=result_stm_prev )
+# g <- g + geom_point(mapping = this_aes, alpha=0.4, na.rm = TRUE, data=)
+# g <- g + geom_point(mapping = this_aes, alpha=0.4, na.rm = TRUE, colour = '#99000099',data=thisYear)
+# 今年の予想範囲
+# , linetype="dashed", 
+g <- g + geom_point(mapping = this_aes, na.rm = TRUE, alpha = 0.7, size=2, colour = "blue")
+
+y_axis2 <- y_axis %>% str_c('_平年値')
+this_aes2 <- aes_string(x=x_axis, y=y_axis2)
+g <- g + geom_point(mapping = this_aes2, na.rm = TRUE, alpha = 0.5, size = 1)
+# 前年までのデータ
+plot(g)
+
+```
+```{r}
+pdf_file_name <- str_c(y_axis, '.pdf')
+quartz(type='pdf', file=pdf_file_name)
+plot(g)
+dev.off()
+
+```
+```{r}
+x_axis <- 'st_date'
+y_axis <- '平均気温'
+this_aes <- aes_string(x=x_axis, y=y_axis)
+g <- ggplot(data = allData)
+# g <- g + geom_density(alpha=0.05,mapping = this_aes)
+g <- g + theme_set(theme_bw(base_size = 4,base_family='HiraKakuProN-W3'))
+# g <- g + geom_boxplot(mapping = this_aes, alpha=0.4, notch = TRUE, na.rm = TRUE, colour = '#00009999',data=result_stm_prev )
+# g <- g + geom_point(mapping = this_aes, alpha=0.4, na.rm = TRUE, data=)
+# g <- g + geom_point(mapping = this_aes, alpha=0.4, na.rm = TRUE, colour = '#99000099',data=thisYear)
+# 今年の予想範囲
+# , linetype="dashed", 
+g <- g + geom_point(mapping = this_aes, na.rm = TRUE, alpha = 0.7, size=2, colour = "blue")
+
+y_axis2 <- y_axis %>% str_c('_平年値')
+this_aes2 <- aes_string(x=x_axis, y=y_axis2)
+g <- g + geom_point(mapping = this_aes2, na.rm = TRUE, alpha = 0.5, size = 1)
+# 前年までのデータ
+plot(g)
+
+```
+```{r}
+pdf_file_name <- str_c(y_axis, '.pdf')
+quartz(type='pdf', file=pdf_file_name)
+plot(g)
+dev.off()
+
+```
+
+
+
+
+
+```{r eval=FALSE, include=FALSE}
+x_axis <- 'start_m'
+y_axis <- 'seiten'
+this_aes <- aes_string(x=x_axis, y=y_axis)
+g <- ggplot(data = allData %>% group_by(start_m) %>% mutate(seiten = sum(日照時間_平年値 %>% as.character() %>% as.numeric())) %>% mutate(start_m = start_m %>% as.character() %>% as.integer()))
+# g <- g + geom_density(alpha=0.05,mapping = this_aes)
+g <- g + theme_set(theme_bw(base_size = 4,base_family='HiraKakuProN-W3'))
+# g <- g + geom_boxplot(mapping = this_aes, alpha=0.4, notch = TRUE, na.rm = TRUE, colour = '#00009999',data=result_stm_prev )
+# g <- g + geom_point(mapping = this_aes, alpha=0.4, na.rm = TRUE, data=)
+# g <- g + geom_point(mapping = this_aes, alpha=0.4, na.rm = TRUE, colour = '#99000099',data=thisYear)
+# 今年の予想範囲
+# , linetype="dashed", 
+g <- g + geom_point(this_aes, na.rm = TRUE, alpha=1,size=1)
+# 前年までのデータ
+plot(g)
+
+```
+```{r}
+pdf_file_name <- str_c(y_axis, '.pdf')
+quartz(type='pdf', file=pdf_file_name)
+plot(g)
+dev.off()
+
+```

@@ -1,0 +1,92 @@
+---
+title: "2022/1〜2月　降雪量・積雪量"
+output: html_notebook
+date: "`r Sys.Date()`"
+---
+
+date: `r Sys.Date()`
+```{r eval=FALSE, include=FALSE}
+install.packages('tidyverse')
+```
+
+
+```{r}
+source('../jma/jma_class_2.r')
+snow_2022 <- Jma$new('./')
+```
+
+```{r}
+allData <- snow_2022$allData()
+
+# allData %>% filter(place=酒田) %>% group_by(start_m) %>% mutate(rain_month = sum(降水量_平年値 %>% as.character() %>% as.numeric()))
+```
+```{r}
+# allData %<>% group_by(start_y) %>% mutate(降雪積算=cumsum(降雪量合計))
+allData %>% select(place) %>% unique()
+```
+
+```{r}
+thisPlace = '尾花沢'
+padding_date <- function(str){
+  result <- str_sub(str_c('0',str), start = -2, end = -1)
+  return(result)
+}
+
+thisPlaceData <- allData %>% filter_(paste("place=='", thisPlace, "'", sep = '')) %>% mutate(m_d = str_c(start_m %>% padding_date, start_d %>% padding_date,sep='/') %>% as.character()) %>% group_by(start_y) %>% mutate(降雪積算=cumsum(降雪量合計))
+# allData %>% filter(place=='酒田')
+# paste("place=='", thisPlace, "'", sep = '')
+
+x_axis = 'm_d'
+# y_axis = '最深積雪'
+# y_axis = '降雪積算'
+y_axis = '降雪量合計'
+# y_axis = '平均気温'
+
+this_aes <- aes_string(x=x_axis, y=y_axis, colour='start_y', group='start_y')
+g <- ggplot(data = thisPlaceData)
+# g <- g + geom_density(alpha=0.05,mapping = this_aes)
+g <- g + theme_set(theme_bw(base_size = 4,base_family='HiraKakuProN-W3'))
+g <- g + theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1))
+# g <- g + geom_boxplot(mapping = this_aes, alpha=0.4, notch = TRUE, na.rm = TRUE, colour = '#00009999',data=result_stm_prev )
+# g <- g + geom_point(mapping = this_aes, alpha=0.4, na.rm = TRUE, data=)
+# g <- g + geom_point(mapping = this_aes, alpha=0.4, na.rm = TRUE, colour = '#99000099',data=thisYear)
+# 今年の予想範囲
+# g <- g + geom_path(mapping = this_aes2, na.rm = TRUE, alpha=0.1,size=1, data = testData_predict %>% filter(effect_y != 2021))
+
+g <- g + geom_boxplot(mapping = aes_string(x=x_axis, y=y_axis),lwd=0.3, alpha=0.1, notch = TRUE, na.rm = TRUE, colour = '#00009999',data = thisPlaceData %>% group_by(m_d) %>% filter(start_y != 2022))
+
+
+# 前年までのデータ
+g <- g + geom_path(mapping = this_aes, na.rm = TRUE, alpha=0.2,data = thisPlaceData %>% filter(start_y != 2022), linetype="dashed")
+
+# 今年のデータ
+g <- g + geom_path(mapping = this_aes, na.rm = TRUE, alpha=0.5,data = thisPlaceData %>% filter(start_y == 2022))
+
+# g <- g + geom_path(mapping = this_aes, na.rm = TRUE, alpha=1,data = testData %>% filter(effect_y == 2021))
+# 2007年以降の開花日の箱ヒゲ図
+# g <- g + geom_boxplot(mapping = aes_string(x=x_axis, y=y_axis),lwd=0.4, alpha=0.4, notch = TRUE, na.rm = TRUE, colour = '#00009999',data=testData_actual %>% filter(effect_y %>% as.character() %>% as.integer() > 2007))
+# 開花日の散布図
+# g <- g + geom_point(mapping = this_aes, alpha=0.2, na.rm = TRUE, data=testData_actual %>% filter(effect_y %>% as.character() %>% as.integer() <= 2007))
+# g <- g + geom_point(mapping = this_aes, alpha=0.8, na.rm = TRUE, data=testData_actual %>% filter(effect_y %>% as.character() %>% as.integer() > 2007))
+
+# 今年の予想範囲の箱ヒゲ図
+# testData_predict %>% ungroup()
+# g <- g + geom_boxplot(mapping = aes_string(x=x_axis, y='predict_stmsum', group=x_axis),lwd=0.1, alpha=0.4, notch = TRUE, na.rm = TRUE, colour = '#00009999', outlier.size = 0.5, data=testData_predict)
+# 
+# g <- g + geom_path(mapping = aes(x=st_date, y=DTSsum), na.rm = TRUE, alpha=1,data = predict_line, linetype="dotted", colour="red", size=0.2)
+# g <- g + geom_point(mapping = aes(x=st_date, y=DTSsum), na.rm = TRUE, alpha=1,data = predict_line, colour="red", size=0.2)
+
+# g <- g + scale_y_continuous(breaks=c('0210',56,60,66,72))
+# g <- g + geom_boxplot(mapping = aes_string(x=x_axis, y=y_axis, group='m_jun'), alpha=0.4, notch = TRUE, na.rm = TRUE, colour = '#00009999',data=result_m_d %>% filter(y_num > 2008) %>% filter(NA_y!='2019') %>% group_by(m_jun))
+# g <- g + theme(axis.text.x = element_text(angle = 90, hjust = 1))
+# g <- g + labs(title = str_c(y_axis,'〜',sep=' '))
+plot(g)
+```
+
+```{r}
+pdf_file_name <- str_c(thisPlace, '_', y_axis, '.pdf')
+quartz(type='pdf', file=pdf_file_name)
+plot(g)
+dev.off()
+
+```

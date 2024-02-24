@@ -3,7 +3,7 @@
 # データ読み込み ファイル名指定
 f <-
   read.table(
-    'data-m.csv',
+    'data-m_old.csv',
     sep = ",",
     skip = 1,
     header = F,

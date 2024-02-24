@@ -1,7 +1,7 @@
 # データ読み込み ファイル名指定
 f <-
   read.table(
-    'data.csv',
+    './data_sakata.csv',
     sep = ",",
     skip = 1,
     header = F,

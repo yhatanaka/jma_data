@@ -1,0 +1,191 @@
+---
+title: "2023-08_最高気温"
+output: html_notebook
+date: "`r Sys.Date()`"
+
+---
+
+date: `r Sys.Date()`
+
+1989/12/24〜
+12/24〜4/30 の日平均気温データ。
+https://www.data.jma.go.jp/gmd/risk/obsdl/index.php
+
+```{r}
+# source('../jma/jma_func.r')
+source('../jma/jma_class_2.r')
+spring_temp <- Jma$new('./')
+```
+
+```{r}
+allData <- spring_temp$allData()
+realData <- allData %>% select(st_date,最高気温) %>% mutate(type = 1)
+```
+(解決) read_csv() で col_types = cols(.default = 'c') にして列のデータタイプの推測を抑制しないと、勝手に「ほとんどの行が数字だからこの列は数字」と判断して文字の行が読み込まれなくなる。
+```{r}
+read_jma <- function(csv_f) {
+  f <-
+    read_csv(
+      csv_f
+      # , col_names = FALSE
+      # , skip = 1
+      # , locale = locale(encoding = "cp932")
+    )
+  # 空行削除
+  return(f %>% filter(rowSums(is.na(.)) != ncol(.)))
+}
+
+```
+
+
+```{r}
+# start_m, start_d は 0 padding。
+padding_date <- function(str){
+  result <- str_sub(str_c('0',str), start = -2, end = -1)
+  return(result)
+}
+# result_stm <- allData %>% mutate(m_d = str_c(start_m %>% padding_date, start_d %>% padding_date,sep='/') %>% as.factor)
+
+x_axis <- 'st_date'
+y_axis <- '最高気温'
+```
+気象庁　確率予測資料（2週間気温予報）提供ページ
+https://www.data.jma.go.jp/risk/probability/guidance/csv_k2w.php?n=47587
+この先2週間の気温予測ダウンロード(2week_t_47587.csv)、「predict」に入れておく。
+→ いちいちファイルで保存せず、ネットに直接撮りに行くよう変更。
+```{r}
+    readDataFile <- function(csv_f) {
+      f <-
+        read_csv(
+          csv_f
+          ,
+          col_names = c(1:215 %>% as.character())
+          ,
+          skip = 1
+          # ,
+          # locale =  readr::locale(encoding = "cp932")
+        )
+      # 空行削除
+      return(f %>% filter(rowSums(is.na(.)) != ncol(.)))
+
+    }
+
+sakata_climate_predict <- readDataFile('predict/2week_t_47587.csv')
+# sakata_climate_predict <- readDataFile('https://www.data.jma.go.jp/risk/probability/guidance/download2w.php?2week_t_47587.csv')
+sakata_climate_predict %<>% select(1:7, 9, 11, 215)
+names(sakata_climate_predict) <-
+  c('s_y',
+    's_m',
+    's_d',
+    'e_y',
+    'e_m',
+    'e_d',
+    'durate',
+    'kind',
+    'diff_avr',
+    'avr')
+# 1 平均気温, 2 最高気温, 3 最低気温
+sakata_climate_predict %<>% filter(kind == 2) %>% mutate_at(vars(starts_with('s_')), as.character) %>% mutate_at(vars(starts_with('e_')), as.character) %>% mutate(st_date = str_c(s_y, '/', s_m, '/', s_d) %>% as.Date) %>% mutate(end_date = str_c(e_y, '/', e_m, '/', e_d) %>% as.Date) %>% mutate(最高気温  = (diff_avr + avr)/10)
+
+```
+```{r}
+library("tidyverse")
+library("magrittr")
+    readTestFile <- function(csv_f) {
+      f <-
+        read_csv(
+          csv_f
+          ,
+          col_names = TRUE
+          ,
+          # skip = 1
+          # ,
+          # locale =  readr::locale(encoding = "cp932")
+        )
+      # 空行削除
+      return(f %>% filter(rowSums(is.na(.)) != ncol(.)))
+
+    }
+
+readTest <- readTestFile('2week_t_47587_酒田最高気温/シート1-data-15.csv')
+readTest %>% group_by(タイプ)
+```
+
+```{r}
+g <- ggplot(data = readTest, aes(x=日,y=最高気温, group=タイプ))
+g <- g + list(geom_line())
+plot(g)
+
+
+```
+
+```{r}
+make5dayTemp <- function(date1,date2,temp) {
+  f <- tribble(~st_date,~最高気温,~type,
+               date1 %>% as_date,temp,date1,
+               date2 %>% as_date,temp,date1)
+  return(f)
+}
+dfOut <- sakata_climate_predict %>% rowwise() %>% mutate(lOut = list(make5dayTemp(st_date,end_date,最高気温))) %>% select(lOut)
+dfOut %>% bind_rows()
+```
+
+```{r}
+
+```
+
+```{r}
+g <- ggplot(data = dfOut, aes(x=date,y=最高気温))
+ + list(geom_line())
+plot(g)
+
+```
+
+
+```{r}
+# thisYear = 2023
+this_aes <- aes_string(x=x_axis, y=y_axis, colour='effect_y', group='effect_y')
+this_aes2 <- aes_string(x=x_axis, y='predict_stmsum', group='effect_y')
+g <- ggplot(data = testData)
+# g <- g + geom_density(alpha=0.05,mapping = this_aes)
+g <- g + theme_set(theme_bw(base_size = 4,base_family='HiraKakuProN-W3'))
+# g <- g + geom_boxplot(mapping = this_aes, alpha=0.4, notch = TRUE, na.rm = TRUE, colour = '#00009999',data=result_stm_prev )
+# g <- g + geom_point(mapping = this_aes, alpha=0.4, na.rm = TRUE, data=)
+# g <- g + geom_point(mapping = this_aes, alpha=0.4, na.rm = TRUE, colour = '#99000099',data=thisYear)
+# 今年の予想範囲
+# , linetype="dashed", 
+g <- g + geom_path(mapping = this_aes2, na.rm = TRUE, alpha=0.1,size=1, data = testData_predict %>% filter(effect_y != thisYear))
+# 前年までのデータ
+g <- g + geom_path(mapping = this_aes, na.rm = TRUE, alpha=0.1,data = testData %>% filter(effect_y != thisYear))
+
+# 今年のデータ
+g <- g + geom_path(mapping = this_aes, na.rm = TRUE, alpha=1,data = testData %>% filter(effect_y == thisYear))
+# 2007年以降の開花日の箱ヒゲ図
+g <- g + geom_boxplot(mapping = aes_string(x=x_axis, y=y_axis),lwd=0.4, alpha=0.4, notch = TRUE, na.rm = TRUE, colour = '#00009999',data=testData_actual %>% filter(effect_y %>% as.character() %>% as.integer() > 2007))
+# 開花日の散布図
+g <- g + geom_point(mapping = this_aes, alpha=0.2, na.rm = TRUE, data=testData_actual %>% filter(effect_y %>% as.character() %>% as.integer() <= 2007))
+g <- g + geom_point(mapping = this_aes, alpha=0.8, na.rm = TRUE, data=testData_actual %>% filter(effect_y %>% as.character() %>% as.integer() > 2007))
+
+# 今年の予想範囲の箱ヒゲ図
+testData_predict %>% ungroup()
+g <- g + geom_boxplot(mapping = aes_string(x=x_axis, y='predict_stmsum', group=x_axis),lwd=0.1, alpha=0.4, notch = TRUE, na.rm = TRUE, colour = '#00009999', outlier.size = 0.5, data=testData_predict)
+
+g <- g + geom_path(mapping = aes(x=st_date, y=DTSsum), na.rm = TRUE, alpha=1,data = predict_line, linetype="dotted", colour="red", size=0.2)
+g <- g + geom_point(mapping = aes(x=st_date, y=DTSsum), na.rm = TRUE, alpha=1,data = predict_line, colour="red", size=0.2)
+
+
+
+# g <- g + scale_y_continuous(breaks=c('0210',56,60,66,72))
+# g <- g + geom_boxplot(mapping = aes_string(x=x_axis, y=y_axis, group='m_jun'), alpha=0.4, notch = TRUE, na.rm = TRUE, colour = '#00009999',data=result_m_d %>% filter(y_num > 2008) %>% filter(NA_y!='2019') %>% group_by(m_jun))
+# g <- g + theme(axis.text.x = element_text(angle = 90, hjust = 1))
+# g <- g + labs(title = str_c(y_axis,'〜',sep=' '))
+plot(g)
+```
+```{r}
+DsStr <- Ds %>% sub('/', '_', .)
+pdf_file_name <- str_c(y_axis, '_',last_day$st_date %>% format(format="%Y-%m-%d"),'_', DsStr, '_fit_', tmin, '_', tmax, '.pdf')
+quartz(type='pdf', file=pdf_file_name)
+plot(g)
+dev.off()
+
+```

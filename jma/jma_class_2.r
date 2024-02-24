@@ -2,6 +2,11 @@ library("tidyverse")
 library("magrittr")
 library("R6")
 
+# install.packages('tidyverse')
+# install.packages('magrittr')
+# install.packages('R6')
+
+
 Jma <- R6Class(
   classname = "Jma",
   public = list(
@@ -72,14 +77,19 @@ Jma <- R6Class(
       databody_tbl <- data_tbl %>% private$dataRows(headers_end)
       # 年月日の部分 + 開始年・月・日から日付の列 st_date
       ymd_tbl <- databody_tbl %>% private$ymdCols(ymd_end2) %>% mutate_all(as.factor)
-      ymd_tbl %<>% mutate(st_date = as.Date(str_c(.$X1, .$X2, .$X3, sep = '/')))
+      if (ncol(ymd_tbl) == 2) {
+        ymd_tbl %<>% mutate(st_date = str_c(.$X1, .$X2, sep = '/'))
+      } else if (ncol(ymd_tbl) >= 3) {
+        ymd_tbl %<>% mutate(st_date = as.Date(str_c(.$X1, .$X2, .$X3, sep = '/')))
+      }
       self$ymd_col_name = self$ymdColName(data_tbl)
       names(ymd_tbl) <- c(self$ymd_col_name, 'st_date')
 
       # データヘッダ用
       data_col_name = self$dataColName(data_tbl)
       # 地点ごとにデータまとめる
-      placeList_vec <- private$makePlaceList(data_tbl %>% private$dataCols(ymd_end), ymd_end)
+      # placeList_vec <- private$makePlaceList(data_tbl %>% private$dataCols(ymd_end), ymd_end)
+      placeList_vec <- private$makePlaceList(data_tbl, ymd_end)
       placeList <- placeList_vec[['placeList']]
       place_row_vec <- placeList_vec[['place_row_vec']]
       place_data_list <- placeList %>% lapply(private$seperatePlaceData,
@@ -91,15 +101,94 @@ Jma <- R6Class(
       return(compositedData)
     }
     ,
+    compositData_test = function(data_tbl) {
+      # >> 2. ヘッダ header 最終行
+      headers_end <- private$headerRowEnd(data_tbl)
+      # >> 3. 年月日 ymd 最終列
+      ymd_end <- private$ymdColEnd(data_tbl)
+      # >> 3. 開始日 最終列
+      ymd_end2 <- private$ymdColEnd2(data_tbl)
+      # データのヘッダ部分削除
+      databody_tbl <- data_tbl %>% private$dataRows(headers_end)
+      # 年月日の部分 + 開始年・月・日から日付の列 st_date
+      ymd_tbl <- databody_tbl %>% private$ymdCols(ymd_end2) %>% mutate_all(as.factor)
+      if (ncol(ymd_tbl) == 1) {
+        # 日付リテラル(y/m/d) start_NA
+        ymd_list <- ymd_tbl$X1 %>% str_split('/')
+        ymd_tbl %<>% mutate(st_date = .$X1) %>% mutate(start_y = ymd_list[[1]][1]) %>% mutate(start_m = ymd_list[[1]][2])
+        if (ymd_list %>% length() == 3) {
+          ymd_tbl %>% mutate(start_d = ymd_list[[1]][3])
+        }
+      } else if (ncol(ymd_tbl) == 2) {
+        ymd_tbl %<>% mutate(st_date = str_c(.$X1, .$X2, sep = '/'))
+      } else if (ncol(ymd_tbl) == 3) {
+        ymd_tbl %<>% mutate(st_date = as.Date(str_c(.$X1, .$X2, .$X3, sep = '/')))
+      }
+      self$ymd_col_name = self$ymdColName(data_tbl)
+      names(ymd_tbl) <- c(self$ymd_col_name, 'st_date')
+
+      # データヘッダ用
+      data_col_name = self$dataColName(data_tbl)
+      # 地点ごとにデータまとめる
+      # placeList_vec <- private$makePlaceList(data_tbl %>% private$dataCols(ymd_end), ymd_end)
+      placeList_vec <- private$makePlaceList(data_tbl, ymd_end)
+      placeList <- placeList_vec[['placeList']]
+      place_row_vec <- placeList_vec[['place_row_vec']]
+      place_data_list <- placeList %>% lapply(private$seperatePlaceData,
+                                              databody_tbl %>% private$dataCols(ymd_end),
+                                              place_row_vec,
+                                              data_col_name)
+
+      return(self$data_tbl_list)
+    }
+    ,
     allData = function() {
       result <- lapply(self$data_tbl_list, self$compositData) %>% bind_rows()
+
       # dataColm_name_vec <- c(1:ymd_end, data_col_name), data -> (_無し)dbl (_)factor, place -> factor
       # ymdColName(1:ymd_end) -> factor, st_date -> Date,
+
       tbl_colnames_vec <- names(result)
       without_underbar_cols <- which(private$withUnderbarCol(tbl_colnames_vec))
-      result %<>% mutate_at(vars(contains('_')), funs(as.factor)) %>% mutate_at(vars(without_underbar_cols), funs(as.numeric)) %>% mutate(place = as.factor(place)) %>% mutate(st_date = as.Date(st_date))
-      result %<>% mutate_at(self$ymd_col_name %>% as.vector, funs(as.factor))
+      # result %<>% mutate_at(vars(contains('_')), list(~as.factor(.))) %>% mutate_at(vars(all_of(without_underbar_cols)), list(~as.numeric(.))) %>% mutate(place = as.factor(place)) %>% mutate(st_date = as.Date(st_date))
+      # result %<>% mutate_at(self$ymd_col_name %>% as.vector, list(~as.factor(.)))
       return(result)
+    }
+    ,
+    allData_test = function() {
+      # result <- lapply(self$data_tbl_list, self$compositData) %>% bind_rows()
+
+      result <- lapply(self$data_tbl_list, self$compositData_test)
+      return(result)
+
+      # dataColm_name_vec <- c(1:ymd_end, data_col_name), data -> (_無し)dbl (_)factor, place -> factor
+      # ymdColName(1:ymd_end) -> factor, st_date -> Date,
+
+      # tbl_colnames_vec <- names(result)
+      # without_underbar_cols <- which(private$withUnderbarCol(tbl_colnames_vec))
+      # result %<>% mutate_at(vars(contains('_')), list(~as.factor(.))) %>% mutate_at(vars(all_of(without_underbar_cols)), list(~as.numeric(.))) %>% mutate(place = as.factor(place)) %>% mutate(st_date = as.Date(st_date))
+      # result %<>% mutate_at(self$ymd_col_name %>% as.vector, list(~as.factor(.)))
+      # return(result)
+    }
+    ,
+    test = function(data_tbl) {
+      headers_end <- private$headerRowEnd(data_tbl)
+      ymd_end2 <- private$ymdColEnd2(data_tbl)
+      databody_tbl <- data_tbl %>% private$dataRows(headers_end)
+      ymd_tbl <- databody_tbl %>% private$ymdCols(ymd_end2) %>% mutate_all(as.factor)
+      ymd_tbl %<>% mutate(st_date = as.Date(str_c(.$X1, .$X2, .$X3, sep = '/')))
+      self$ymd_col_name = self$ymdColName(data_tbl)
+      names(ymd_tbl) <- c(self$ymd_col_name, 'st_date')
+      data_col_name = self$dataColName(data_tbl)
+      placeList_vec <- private$makePlaceList(data_tbl, ymd_end2)
+      placeList <- placeList_vec[['placeList']]
+      place_row_vec <- placeList_vec[['place_row_vec']]
+      place_data_list <- placeList %>% lapply(private$seperatePlaceData,
+                                              databody_tbl %>% private$dataCols(ymd_end2),
+                                              place_row_vec,
+                                              data_col_name)
+
+      return(place_data_list)
     }
 
   )
@@ -123,10 +212,17 @@ Jma <- R6Class(
           ,
           skip = 1
           ,
-          locale = locale(encoding = "cp932")
+          skip_empty_rows = TRUE
+          ,
+          n_max = Inf
+          ,
+# 余計な変換（2000行超えると、タイプの違うデータ読み飛ばしたりする。例えば、ヘッダに相当する「年」「月」「日」）
+          col_types = cols(.default = "c")
+          ,
+          locale =  readr::locale(encoding = "cp932")
         )
       # 空行削除
-      return(f %>% filter(rowSums(is.na(.)) != ncol(.)))
+      # return(f %>% filter(rowSums(is.na(.)) != ncol(.)))
 
     }
     ,
@@ -143,8 +239,9 @@ Jma <- R6Class(
     # 先頭から"NA"が続く最後の行までが項目名。その後のちゃんと数字が始まる（NA じゃない）行からがデータ。
     # ヘッダの行の最後は，as.numeric が NA 「ではない」（つまり数字）一番始めの（つまりデータの始まる）行の一つ前まで
     headerRowEnd = function(data_tbl) {
+# 年月日が"YYYY/MM/DD"形式の場合に備えて、先頭2列ははずす
       result <-
-        (data_tbl[, 1] %>% purrr::map(as.numeric) %>% map({~ !is.na(.)}) %>% flatten_lgl %>% which %>% min) - 1
+        (data_tbl[, 3] %>% purrr::map(as.numeric) %>% map({~ !is.na(.)}) %>% flatten_lgl %>% which %>% min) - 1
       return(result)
     }
     ,
@@ -175,7 +272,7 @@ Jma <- R6Class(
     ,
     # >>  4. 年月日のヘッダから列名 >>decl>>
     # 2行目「年」=> y,「月」=> m,「日」=> d
-    ymd_vec = c("年" = "y", "月" = "m", "日" = "d")
+    ymd_vec = c("年" = "y", "月" = "m", "日" = "d", "時" = "h")
     ,
     # >>  4. 年月日のヘッダから列名
     # ヘッダは hd_num 行まで
@@ -190,12 +287,12 @@ Jma <- R6Class(
     ,
     # ymdの列
     ymdCols = function(tbl, col_num) {
-      return(tbl %>% dplyr::select(c(1:col_num)))
+      return(tbl %>% dplyr::select(c(1:all_of(col_num))))
     }
     ,
     # それ以外の気象データの列
     dataCols = function(tbl, col_num) {
-      return(tbl %>% dplyr::select(-c(1:col_num)))
+      return(tbl %>% dplyr::select(-c(1:all_of(col_num))))
     }
     ,
     # 年月日のヘッダ，変換後，くっつけて列名に
@@ -230,10 +327,11 @@ Jma <- R6Class(
     # 気象データの列から地名　最終データ組立てで使用
     makePlaceList = function(data_tbl, ymd_end) {
       # >> 6. 1行目をベクトルに
-      place_row <- data_tbl %>% slice(1)
+      place_row <- data_tbl %>% private$dataCols(ymd_end) %>% slice(1)
       place_row_vec <- place_row %>% as.matrix() %>% as.vector()
       # 気象データの列から地名
-      placeList <- place_row %>% private$dataCols(ymd_end) %>% as.matrix() %>% as.vector() %>% unique
+      placeList <- place_row %>% as.matrix() %>% as.vector() %>% unique
+      # return(placeList)
       return(list('placeList' = placeList, 'place_row_vec' = place_row_vec))
     }
     ,

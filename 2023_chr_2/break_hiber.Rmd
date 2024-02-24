@@ -1,0 +1,48 @@
+---
+title: "サクラ休眠解除"
+output: html_notebook
+date: "`r Sys.Date()`"
+---
+
+date: `r Sys.Date()`
+
+10/1〜2/29 の、毎時の気温
+
+```{r}
+        read_csv(
+          'data-7_utf8.csv'
+          ,
+          col_names = FALSE
+          ,
+          skip = 1
+          ,
+          skip_empty_rows = TRUE
+          ,
+          n_max = Inf
+          ,
+          col_types = cols(.default = "c")
+          ,
+          # locale =  readr::locale(encoding = "cp932")
+          locale =  readr::locale(encoding = "UTF-8")
+        )
+
+```
+
+```{r}
+source('../jma/jma_class_2.r')
+break_hiber_temp_2021 <- Jma$new('./')
+allData <- break_hiber_temp_2021$allData()
+```
+
+
+```{r}
+
+# start_date <- allData %>% filter(気温 %>% as.numeric()<=8)
+start_date <- allData %>% filter(気温 %>% as.numeric()<=8) %>% mutate(int_m=start_m %>% as.character() %>% as.integer()) %>% mutate(int_y=start_y %>% as.character() %>% as.integer()) %>% mutate(nendo=if_else(condition = int_m>9,true = as.integer(int_y+1),false = int_y)) %>% group_by(nendo) %>% arrange(st_date) %>% mutate(hour_count = 1) %>% mutate(hour_sum = cumsum(hour_count)) %>% filter(hour_sum==1000) %>% select(nendo,st_date)
+
+start_date %>% write_csv(file = "start_date.csv")
+```
+
+```{r}
+```
+

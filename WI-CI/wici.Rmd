@@ -1,0 +1,14 @@
+---
+title: "酒田・飛島・山形　暖かさの指数、寒さの指数"
+output: html_notebook
+---
+
+```{r}
+source('../jma/jma_class_2.r')
+tmprt_new<- Jma$new('./data-5.csv')
+new_allData <- sakata_old$allData()
+tmprt_old<- Jma$new('./data-6.csv')
+old_allData <- sakata_old$allData()
+
+```
+

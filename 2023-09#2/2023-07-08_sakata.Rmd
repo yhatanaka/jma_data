@@ -1,0 +1,108 @@
+---
+title: "tidyverse で処理"
+output: 
+  html_notebook: 
+    fig_height: 7
+    fig_width: 7
+    smart: no
+    toc: yes
+---
+
+(初回だけ)パッケージのインストール
+```{r eval=FALSE, include=FALSE}
+#パッケージのインストール
+install.packages("tidyverse")
+
+```
+
+
+```{r}
+# source('../jma/jma_func.r')
+source('../jma/jma_class_2.r')
+summer_temp <- Jma$new('./')
+```
+
+
+```{r}
+allData <- summer_temp$allData() %>% mutate(降水量 = 降水量 %>% as.numeric) %>% mutate(start_y = start_y %>% as.character %>% as.integer)
+kako <- allData %>% filter(start_y < 2023)
+kotoshi <- allData %>% filter(start_y == 2023)
+```
+
+
+
+グラフにしてみる。
+```{r}
+g <- ggplot(data=kako)
+g <- g + theme_set(theme_bw(base_size = 6,base_family="HiraKakuProN-W3"))
+# g <- g + geom_jitter(mapping = aes(x=start_m, y=降水量), colour = 'blue')
+g <- g + geom_violin(mapping = aes(x=start_m, y=降水量),na.rm = TRUE, colour = '#00009966', fill = 'blue', alpha = 0.1)
+g <- g + geom_boxplot(mapping = aes(x=start_m, y=降水量),alpha=0.3, notch = TRUE)
+g <- g + geom_point(data=kotoshi,mapping = aes(x=start_m, y=降水量))
+plot(g)
+
+```
+
+月ごとにまとめて散布図に。
+```{r}
+ggplot()+theme_set(theme_bw(base_size = 6,base_family="HiraKakuProN-W3"))
+ggplot(data=named_tbl_1) + geom_point(mapping = aes(x=start_m, y=降水量))
+
+```
+
+アレンジ。
+```{r}
+ggplot()+theme_set(theme_bw(base_size = 6,base_family="HiraKakuProN-W3"))
+ggplot(data=named_tbl_1) + geom_boxplot(mapping = aes(x=start_m, y=降水量))
+
+```
+
+```{r}
+ggplot()+theme_set(theme_bw(base_size = 6,base_family="HiraKakuProN-W3"))
+ggplot(data=named_tbl_1, aes(x=start_m, y=降水量)) + geom_jitter(width=0.1) + geom_boxplot(alpha=0.3, outlier.shape = NA)
+
+```
+
+```{r}
+cCyan <- "#00a0e9"
+cMagenta <- "#e4007f"
+cGreen <- "#009944"
+cOrange <- "#f39800"
+cLightBlue <- "#0068b7"
+qcolours <- c(cCyan,cMagenta,cGreen,cOrange,cLightBlue)
+
+ggplot()+theme_set(theme_bw(base_size = 6,base_family="HiraKakuProN-W3"))
+# ggplot(data=named_tbl_1, aes(x=start_m, y=降水量, colour='place')) + geom_dotplot(binwidth=1, dotsize=3, binaxis="y", stackdir="center", na.rm = TRUE, fill = 'blue') + geom_boxplot(alpha=0.3, notch = TRUE, na.rm = TRUE, outlier.shape = NA) + scale_fill_brewer(palette="Spectral") + scale_colour_manual(values = qcolours)
+ggplot(data=named_tbl_1, aes(x=start_m, y=降水量)) + geom_boxplot(alpha=0.3, notch = TRUE, na.rm = TRUE, outlier.shape = NA, colour = '#00009966') + scale_fill_brewer(palette="Spectral") + geom_dotplot(binwidth=1, dotsize=3, binaxis="y", stackdir="center", na.rm = TRUE, colour = 'blue', alpha = 0.2)
+
+```
+
+```{r}
+ggplot()+theme_set(theme_bw(base_size = 6,base_family="HiraKakuProN-W3"))
+ggplot(data=named_tbl_1, aes(x=start_m, y=降水量, colour='place')) + geom_violin(na.rm = TRUE, colour = '#00009966', fill = 'blue', alpha = 0.1) + geom_dotplot(binwidth=1, dotsize=4, binaxis="y", stackdir="center", na.rm = TRUE, colour = 'blue', alpha = 0.2) + geom_boxplot(alpha=0.4, notch = TRUE, na.rm = TRUE, outlier.shape = NA, colour = '#00009999') 
+
+```
+
+
+
+これでもいいか。まず「年/月」って列作る。
+```{r eval=FALSE, include=FALSE}
+make_each_y_m <- function(date){
+  date_str <- as.character(date)
+  date_str_vec <- strsplit(date_str, '-')
+# strsplit はリスト返す
+  result <- str_c(date_str_vec[[1]][1], date_str_vec[[1]][2], sep='/')
+  return(result)
+}
+make_y_m <- function(col){
+  result <- sapply(col, make_each_y_m)
+  return(result)
+}
+named_tbl_1 %>% mutate(ym=make_y_m(st_date)) %>% glimpse()
+```
+
+よしよし。次に summerise。
+```{r eval=FALSE, include=FALSE}
+named_tbl_1 %>% mutate(ym=make_y_m(st_date)) %>% group_by_('start_y', 'start_m') %>% summarise(sun.total = sum(日照時間), rain.total = sum(降水量), tmpr.avr = mean(平均気温), tmpr.day_high = mean(日最高気温), tmpr.day_low = mean(日最低気温)) %>% glimpse()
+```
+
