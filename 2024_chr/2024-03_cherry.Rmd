@@ -281,8 +281,8 @@ https://www.data.jma.go.jp/risk/probability/guidance/csv_k2w.php?n=47587
     #   moddata_list <- data_files %>% lapply(readDataFile)
     #   return(moddata_list)
     # }
-sakata_climate_predict <- readDataFile('predict/2week_t_47587.csv')
-# sakata_climate_predict <- readDataFile('https://www.data.jma.go.jp/risk/probability/guidance/download2w.php?2week_t_47587.csv')
+# sakata_climate_predict <- readDataFile('predict/2week_t_47587.csv')
+sakata_climate_predict <- readDataFile('https://www.data.jma.go.jp/risk/probability/guidance/download2w.php?2week_t_47587.csv')
 sakata_climate_predict %<>% select(1:7, 9, 11, 215)
 names(sakata_climate_predict) <-
   c('s_y',
@@ -340,14 +340,14 @@ g <- g + theme_set(theme_bw(base_size = 4,base_family='HiraKakuProN-W3'))
 # g <- g + geom_point(mapping = this_aes, alpha=0.4, na.rm = TRUE, colour = '#99000099',data=thisYear)
 # 今年の予想範囲
 # , linetype="dashed", 
-g <- g + geom_path(mapping = this_aes2, na.rm = TRUE, alpha=0.1,size=1, data = testData_predict %>% filter(effect_y != thisYear))
+g <- g + geom_path(mapping = this_aes2, na.rm = TRUE, alpha=0.1,linewidth=1, data = testData_predict %>% filter(effect_y != thisYear))
 # 前年までのデータ
 g <- g + geom_path(mapping = this_aes, na.rm = TRUE, alpha=0.1,data = testData %>% filter(effect_y != thisYear))
 
 # 今年のデータ
 g <- g + geom_path(mapping = this_aes, na.rm = TRUE, alpha=1,data = testData %>% filter(effect_y == thisYear))
 # 2007年以降の開花日の箱ヒゲ図
-g <- g + geom_boxplot(mapping = aes_string(x=x_axis, y=y_axis),lwd=0.4, alpha=0.4, notch = TRUE, na.rm = TRUE, colour = '#00009999',data=testData_actual %>% filter(effect_y %>% as.character() %>% as.integer() > 2007))
+g <- g + geom_boxplot(mapping = aes(x=.data[[x_axis]], y=.data[[y_axis]]),lwd=0.4, alpha=0.4, notch = TRUE, na.rm = TRUE, colour = '#00009999',data=testData_actual %>% filter(effect_y %>% as.character() %>% as.integer() > 2007))
 # 開花日の散布図
 g <- g + geom_point(mapping = this_aes, alpha=0.2, na.rm = TRUE, data=testData_actual %>% filter(effect_y %>% as.character() %>% as.integer() <= 2007))
 g <- g + geom_point(mapping = this_aes, alpha=0.8, na.rm = TRUE, data=testData_actual %>% filter(effect_y %>% as.character() %>% as.integer() > 2007))
