@@ -354,9 +354,9 @@ g <- g + geom_point(mapping = this_aes, alpha=0.8, na.rm = TRUE, data=testData_a
 
 # 今年の予想範囲の箱ヒゲ図
 testData_predict %>% ungroup()
-g <- g + geom_boxplot(mapping = aes_string(x=x_axis, y='predict_stmsum', group=x_axis),lwd=0.1, alpha=0.4, notch = TRUE, na.rm = TRUE, colour = '#00009999', outlier.size = 0.5, data=testData_predict)
+g <- g + geom_boxplot(mapping = aes(x=.data[[x_axis]], y=predict_stmsum, group=.data[[x_axis]]),lwd=0.1, alpha=0.4, notch = TRUE, na.rm = TRUE, colour = '#00009999', outlier.size = 0.5, data=testData_predict)
 
-g <- g + geom_path(mapping = aes(x=st_date, y=DTSsum), na.rm = TRUE, alpha=1,data = predict_line, linetype="dotted", colour="red", size=0.2)
+g <- g + geom_path(mapping = aes(x=st_date, y=DTSsum), na.rm = TRUE, alpha=1,data = predict_line, linetype="dotted", colour="red", linewidth=0.2)
 g <- g + geom_point(mapping = aes(x=st_date, y=DTSsum), na.rm = TRUE, alpha=1,data = predict_line, colour="red", size=0.2)
 
 
