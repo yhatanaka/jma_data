@@ -15,7 +15,6 @@ https://www.data.jma.go.jp/gmd/risk/obsdl/index.php
 source('../jma/jma_class_2.r')
 spring_temp <- Jma$new('./')
 allData <- spring_temp$allData()
-allData
 # allData %>% filter(y == 2020)
 ```
 酒田での、毎年の開花日
@@ -32,26 +31,15 @@ read_jma <- function(csv_f) {
 }
 # d: 開花日，Dd: 起算開始日からの補正
 sakata_chr <- read_jma("others/sakata_chr_1990-2019.csv")
-# sakata_chr
-# 年
-sakata_chr_y <- sakata_chr$y
-# 開花日（m/d）
-sakata_chr_d <- sakata_chr$d
-# sakata_chr_d[!is.na(sakata_chr_d)] %>% min
+# sakata_chr$d[!is.na(sakata_chr_d)] %>% min
 # sakata_chr_Dd <- sakata_chr$Dd
 # 開花日の年月日
 sakata_chr_d2 <-
-  str_c(sakata_chr$y, '-', sakata_chr$m, '-', sakata_chr_d) %>% as.Date
-# sakata_chr_y
-# sakata_chr_d
-# sakata_chr_d2
+  str_c(sakata_chr$y, '-', sakata_chr$m, '-', sakata_chr$d) %>% as.Date
 # 年を列名に（Hash的構造）
-names(sakata_chr_d2) <- sakata_chr_y
-# names(sakata_chr_Dd) <- sakata_chr_y
+names(sakata_chr_d2) <- sakata_chr$y
+# names(sakata_chr_Dd) <- sakata_chr$y
 # sakata_chr_Dd
-# sakata_chr_d2['1990']
-# sakata_chr_d2['1989']
-
 # nendo，st_date: 起算開始日
 # sakata_chr2 <- read_jma("others/start_date.csv")
 # sakata_std <- sakata_chr2$st_date
@@ -82,9 +70,7 @@ result_stm <-
 #   mutate(stm_3=cumsum(eff_tmp_3))
 #   # mutate(stm_h_0=cumsum(eff_h_tmp_0)) %>% 
 #   # mutate(stm_h_5=cumsum(eff_h_tmp_5))
-
 # result_stm %>% ungroup()
-
 
 # 温度特性値 E alpha 15~18 kcal/mol avr 16.8kcal or 70kJ/mol
 const_E_alpha <- 70000
@@ -229,8 +215,6 @@ testData %>% ungroup()
 # 開花日を抽出
 testData_actual <-
   testData %>% filter(actual_flag) %>% dplyr::select(all_of(x_axis), start_y, effect_y, all_of(y_axis), actual_flag)
-testData_actual
-
 ```
 ```{r}
 testData %>% ungroup()
@@ -243,10 +227,8 @@ last_day <-
 # last_day$DTSsum
 # 最終日の年，月日
 last_year <- last_day$start_y %>% as.character
-lastday_m_d <- last_day$st_date %>% format(format = "/%m/%d")
 
 # 最終日以降の予想データ
-# lastday_m_d
 # 前年までの，「最終日の月日」以降のデータ　年を最終日の年に変えたら最終日より後になる日
 testData_predict <-
   testData %>% filter(str_c(last_year, st_date %>% format(format = "/%m/%d")) %>% as.Date >= last_day$st_date %>% as.Date)
@@ -285,8 +267,8 @@ readDataFile <- function(csv_f) {
     #   moddata_list <- data_files %>% lapply(readDataFile)
     #   return(moddata_list)
     # }
-# sakata_climate_predict <- readDataFile('predict/2week_t_47587.csv')
-sakata_climate_predict <- readDataFile('https://www.data.jma.go.jp/risk/probability/guidance/download2w.php?2week_t_47587.csv')
+sakata_climate_predict <- readDataFile('predict/2week_t_47587.csv')
+# sakata_climate_predict <- readDataFile('https://www.data.jma.go.jp/risk/probability/guidance/download2w.php?2week_t_47587.csv')
 sakata_climate_predict %<>% select(1:7, 9, 11, 215)
 names(sakata_climate_predict) <-
   c('s_y',
