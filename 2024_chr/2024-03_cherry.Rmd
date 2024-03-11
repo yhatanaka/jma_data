@@ -258,8 +258,6 @@ testData_predict %<>% mutate(
   )
 )
 testData_predict %<>% group_by(effect_y) %>% mutate(predict_stmsum = cumsum(predict_stm))
-
-# last_day
 ```
 気象庁　確率予測資料（2週間気温予報）提供ページ
 https://www.data.jma.go.jp/risk/probability/guidance/csv_k2w.php?n=47587
