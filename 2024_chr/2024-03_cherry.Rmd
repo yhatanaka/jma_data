@@ -12,7 +12,6 @@ date: `r Sys.Date()`
 https://www.data.jma.go.jp/gmd/risk/obsdl/index.php
 
 ```{r}
-# source('../jma/jma_func.r')
 source('../jma/jma_class_2.r')
 spring_temp <- Jma$new('./')
 allData <- spring_temp$allData()
@@ -25,14 +24,11 @@ allData
 ```{r}
 read_jma <- function(csv_f) {
   f <-
-    read_csv(
-      csv_f
-      # , col_names = FALSE
-      # , skip = 1
-      # , locale = locale(encoding = "cp932")
+    read_csv(csv_f
+# , col_names = FALSE , skip = 1 , locale = locale(encoding = "cp932"))
     )
-  # 空行削除
-  return(f %>% filter(rowSums(is.na(.)) != ncol(.)))
+    # 空行削除
+    return(f %>% filter(rowSums(is.na(.)) != ncol(.)))
 }
 # d: 開花日，Dd: 起算開始日からの補正
 sakata_chr <- read_jma("others/sakata_chr_1990-2019.csv")
@@ -44,7 +40,8 @@ sakata_chr_d <- sakata_chr$d
 # sakata_chr_d[!is.na(sakata_chr_d)] %>% min
 # sakata_chr_Dd <- sakata_chr$Dd
 # 開花日の年月日
-sakata_chr_d2 <- str_c(sakata_chr$y, '-', sakata_chr$m, '-', sakata_chr_d) %>% as.Date
+sakata_chr_d2 <-
+  str_c(sakata_chr$y, '-', sakata_chr$m, '-', sakata_chr_d) %>% as.Date
 # sakata_chr_y
 # sakata_chr_d
 # sakata_chr_d2
@@ -64,12 +61,14 @@ names(sakata_chr_d2) <- sakata_chr_y
 
 ```{r}
 # start_m, start_d は 0 padding。
-padding_date <- function(str){
-  result <- str_sub(str_c('0',str), start = -2, end = -1)
+padding_date <- function(str) {
+  result <- str_sub(str_c('0', str), start = -2, end = -1)
   return(result)
 }
 # result_m_d <- allData %>% mutate(m_d = str_c(start_m %>% padding_date, start_d %>% padding_date,sep='/') %>% as.factor)
-result_stm <- allData %>% mutate(m_d = str_c(start_m %>% padding_date, start_d %>% padding_date,sep='/') %>% as.factor)
+result_stm <-
+  allData %>% mutate(m_d = str_c(start_m %>% padding_date, start_d %>% padding_date, sep =
+                                   '/') %>% as.factor)
 
 # result_stm <- result_m_d %>%
 #   mutate(eff_tmp_5 = if_else(condition = 平均気温>5, 平均気温-5, 0)) %>%
@@ -93,36 +92,35 @@ const_E_alpha <- 70000
 # モル気体定数 1.987 cal/K*mol = 8.314 J/K*mon
 const_R <- 8.314
 
-ERratio <- const_E_alpha/const_R
+ERratio <- const_E_alpha / const_R
 # 絶対温度と摂氏の変換
 const_Ta <- 273.15
 # 標準温度 Ts
 const_Ts <- 15
 # 標準温度 (K)
 Tsk <- const_Ts + const_Ta
-RevTsk <- 1/Tsk
+RevTsk <- 1 / Tsk
 # 平均温度Tが標準温度Tsの何日分に相当するか
 calc_ts <- function(T, Dt) {
   # result <- exp(const_E_alpha/const_R*(T - const_Ts)/((T+const_Ta)*(const_Ts+const_Ta)))
   Tk <- T + const_Ta
-  result1 <- ((RevTsk - 1/Tk)*ERratio) %>% exp()
-  conpRatio1 <- ERratio*Dt/Tk^2
-  result2 <- 1 + (conpRatio1^2)*0.9/16
-  return(result1*result2)
+  result1 <- ((RevTsk - 1 / Tk) * ERratio) %>% exp()
+  conpRatio1 <- ERratio * Dt / Tk ^ 2
+  result2 <- 1 + (conpRatio1 ^ 2) * 0.9 / 16
+  return(result1 * result2)
 }
 # calc_ts(0,0)
 # (0,0)から(2π,2π)のシグモイド風曲線を、(1,1)までに正規化
 correct0 <- function(x) {
-  res <- x*2*pi - sin(x*2*pi)
-  return(res/(2*pi))
+  res <- x * 2 * pi - sin(x * 2 * pi)
+  return(res / (2 * pi))
 }
 
-fitCorrect0 <- function(x,tmin,tmax) {
+fitCorrect0 <- function(x, tmin, tmax) {
   span <- tmax - tmin
-  resX <- (x - tmin)/span
+  resX <- (x - tmin) / span
   return(correct0(resX))
 }
-
 # testFunc <- function(x) {fitCorrect0(x, 2, 5)}
 
 # fitTS <- function(x, tmin, tmax) {
@@ -138,9 +136,11 @@ fitCorrect0 <- function(x,tmin,tmax) {
 
 fitTS <- function(x, diumalrange, tmin, tmax) {
   res <- ifelse(x < tmin, 0,
-          ifelse(tmax <= x, calc_ts(x, 0),
-            calc_ts(x,diumalrange)*fitCorrect0(x,tmin,tmax) # tmin <= x && x < tmax
-          )      )
+                ifelse(
+                  tmax <= x,
+                  calc_ts(x, 0),
+                  calc_ts(x, diumalrange) * fitCorrect0(x, tmin, tmax) # tmin <= x && x < tmax
+                ))
   return(res)
 }
 
@@ -158,34 +158,37 @@ fctr2int <- function(fctr) {
   return(fctr %>% as.character() %>% as.integer())
 }
 
-result_stm %<>% mutate(effect_y = if_else(condition = start_m %>% fctr2int()>10, true = start_y %>% fctr2int + 1 %>% as.integer(), false = start_y %>% fctr2int %>% as.integer()))
-
+result_stm %<>% mutate(
+  effect_y = if_else(
+    condition = start_m %>% fctr2int() > 10,
+    true = start_y %>% fctr2int + 1 %>% as.integer(),
+    false = start_y %>% fctr2int %>% as.integer()
+  )
+)
 # m月d日以後のデータ
 # この日以降のデータにフラグたてて，filter
 # 起算開始日以降にフラグ
 startDTSDay <- function(ef_y, start_day) {
   # sDateYear <- aDate %>% format(format=str_c("%Y"))
-  startDTSDateOfThidYear <- ef_y %>% as.character() %>% str_c("/",start_day) %>% as.Date()
+  startDTSDateOfThidYear <-
+    ef_y %>% as.character() %>% str_c("/", start_day) %>% as.Date()
   # startDTSDateOfThidYear <- aDate %>% format(format=str_c("%Y/",Ds)) %>% as.Date + sakata_chr_Dd[sDateYear]
   return(startDTSDateOfThidYear)
 }
-result_stm2 <- result_stm%>% mutate(
-  dts_flag = if_else(
-    condition = (
-      # st_date > sakata_std[effect_y %>% as.character()]
-      st_date >= effect_y %>% startDTSDay(Ds)
-    ), true = TRUE, false = FALSE
-  )
-)
+result_stm2 <- result_stm %>% mutate(dts_flag = if_else(
+  condition = (# st_date > sakata_std[effect_y %>% as.character()]
+    st_date >= effect_y %>% startDTSDay(Ds)),
+  true = TRUE,
+  false = FALSE
+))
 result_stm2 %<>% filter(dts_flag)
 
 result_stm2 %<>% mutate(effect_y = as.factor(effect_y))
 # 起算開始日以降を積算
 # result_stm2 %<>% mutate(DTS = calc_ts(平均気温))
 result_stm2 %<>% mutate(across(.cols = ends_with("気温"), .fns = as.numeric))
-result_stm2 %<>% mutate(DTS = fitTS(平均気温, (最高気温 - 最低気温), tmin,tmax))
-result_stm2 %<>% group_by(effect_y) %>% mutate(DTSsum=cumsum(DTS))
-
+result_stm2 %<>% mutate(DTS = fitTS(平均気温, (最高気温 - 最低気温), tmin, tmax))
+result_stm2 %<>% group_by(effect_y) %>% mutate(DTSsum = cumsum(DTS))
 # result_stm_prev <- result_stm %>% ungroup() %>% filter(y_num < 2019) %>% group_by(m_d)
 # result_stm_this <- result_stm %>% ungroup() %>% filter(y_num == 2019) %>% select(m_d,stm_0,stm_5,stm_3,stm_h_5)
 # thisYear <- result_stm %>% filter(y == 2020)
@@ -201,19 +204,31 @@ y_axis <- 'DTSsum'
 thisYear = 2024
 lastYear = thisYear -1
 # グラフ横軸用（工夫次第で不要？）
-testData <- result_stm2 %>% mutate(x_date = if_else(condition = (format(st_date,format="%m") > 10)
-                                                    , true = as.Date(format(st_date, format=paste0(lastYear %>% as.character(), "/%m/%d")))
-                                                    , false = as.Date(format(st_date, format=paste0(thisYear %>% as.character(), "/%m/%d")))
-                                                    )
-                                   )
+testData <-
+  result_stm2 %>% mutate(x_date = if_else(
+    condition = (format(st_date, format = "%m") > 10)
+    ,
+    true = as.Date(format(
+      st_date, format = paste0(lastYear %>% as.character(), "/%m/%d")
+    ))
+    ,
+    false = as.Date(format(
+      st_date, format = paste0(thisYear %>% as.character(), "/%m/%d")
+    ))
+  ))
 # testData <- result_stm2 %>% mutate(x_date = as.Date(format(st_date, format="2021/%m/%d")))
 # 開花日にフラグ
-testData %<>% mutate(actual_flag = if_else(condition = (st_date == sakata_chr_d2[start_y %>% as.character()]), true = TRUE, false = FALSE ))
+testData %<>% mutate(actual_flag = if_else(
+  condition = (st_date == sakata_chr_d2[start_y %>% as.character()]),
+  true = TRUE,
+  false = FALSE
+))
 
 testData %>% ungroup()
 
 # 開花日を抽出
-testData_actual <- testData %>% filter(actual_flag) %>% dplyr::select(all_of(x_axis),start_y,effect_y,all_of(y_axis),actual_flag)
+testData_actual <-
+  testData %>% filter(actual_flag) %>% dplyr::select(all_of(x_axis), start_y, effect_y, all_of(y_axis), actual_flag)
 testData_actual
 
 ```
@@ -222,22 +237,26 @@ testData %>% ungroup()
 
 # データの最終日
 # last_day <- result_stm2$st_date %>% max
-last_day <- testData %>% filter(st_date == result_stm2$st_date %>% max)
+last_day <-
+  testData %>% filter(st_date == result_stm2$st_date %>% max)
 # last_day$st_date
 # last_day$DTSsum
 # 最終日の年，月日
 last_year <- last_day$start_y %>% as.character
-lastday_m_d <- last_day$st_date %>% format(format="/%m/%d")
+lastday_m_d <- last_day$st_date %>% format(format = "/%m/%d")
 
 # 最終日以降の予想データ
 # lastday_m_d
 # 前年までの，「最終日の月日」以降のデータ　年を最終日の年に変えたら最終日より後になる日
-testData_predict <- testData %>% filter(str_c(last_year, st_date %>% format(format="/%m/%d")) %>% as.Date >= last_day$st_date %>% as.Date)
-testData_predict %<>% mutate(predict_stm = case_when(
-  str_c(last_year, st_date %>% format(format="/%m/%d")) %>% as.Date > last_day$st_date %>% as.Date ~ DTS,
-  str_c(last_year, st_date %>% format(format="/%m/%d")) %>% as.Date == last_day$st_date %>% as.Date ~ last_day$DTSsum,
-  TRUE ~ 0
-))
+testData_predict <-
+  testData %>% filter(str_c(last_year, st_date %>% format(format = "/%m/%d")) %>% as.Date >= last_day$st_date %>% as.Date)
+testData_predict %<>% mutate(
+  predict_stm = case_when(
+    str_c(last_year, st_date %>% format(format = "/%m/%d")) %>% as.Date > last_day$st_date %>% as.Date ~ DTS,
+    str_c(last_year, st_date %>% format(format = "/%m/%d")) %>% as.Date == last_day$st_date %>% as.Date ~ last_day$DTSsum,
+    TRUE ~ 0
+  )
+)
 testData_predict %<>% group_by(effect_y) %>% mutate(predict_stmsum = cumsum(predict_stm))
 
 # last_day
@@ -247,21 +266,21 @@ https://www.data.jma.go.jp/risk/probability/guidance/csv_k2w.php?n=47587
 この先2週間の気温予測ダウンロード(2week_t_47587.csv)、「predict」に入れておく。
 → いちいちファイルで保存せず、ネットに直接撮りに行くよう変更。
 ```{r}
-    readDataFile <- function(csv_f) {
-      f <-
-        read_csv(
-          csv_f
-          ,
-          col_names = c(1:215 %>% as.character())
-          ,
-          skip = 1
-          # ,
-          # locale =  readr::locale(encoding = "cp932")
-        )
-      # 空行削除
-      return(f %>% filter(rowSums(is.na(.)) != ncol(.)))
-
-    }
+readDataFile <- function(csv_f) {
+  f <-
+    read_csv(
+      csv_f
+      ,
+      col_names = c(1:215 %>% as.character())
+      ,
+      skip = 1
+      # ,
+      # locale =  readr::locale(encoding = "cp932")
+    )
+  # 空行削除
+  return(f %>% filter(rowSums(is.na(.)) != ncol(.)))
+  
+}
 
     # dataInThisFolder <- function(data_folder) {
     #   data_files <- list.files(data_folder, full.names = T, pattern = '.csv')
@@ -301,48 +320,122 @@ for (i in 1:3) {
   #   # ,
   #   # effect_y = 2021
   # ))
-  add_data <- tibble(st_date = last_date,平均気温  = predict_duration$平均気温)
+  add_data <- tibble(st_date=last_date, 平均気温=predict_duration$平均気温)
   add_data_list <- c(add_data_list, list(add_data))
 }
 predict_line <- add_data_list %>% bind_rows()
 # 5日分のDTS, 積算して, 実測データの最終日のDTSに追加
-predict_line %<>% mutate(DTS = fitTS(平均気温,0,tmin,tmax)*5) %>% mutate(DTSsum=cumsum(DTS) + last_day$DTSsum)
+predict_line %<>% mutate(DTS=fitTS(平均気温, 0, tmin,tmax)*5) %>% mutate(DTSsum=cumsum(DTS) + last_day$DTSsum)
 # スタートは実測データ最終日
-predict_line %<>% add_row(st_date = last_day$st_date %>% as.Date(), DTSsum = last_day$DTSsum, .before = 1)
+predict_line %<>% add_row(st_date=last_day$st_date %>% as.Date(), DTSsum=last_day$DTSsum, .before = 1)
 ```
 
 
 ```{r}
 # this_aes <- aes_string(x=x_axis, y=y_axis, colour='effect_y', group='effect_y')
-this_aes <- aes(x=.data[[x_axis]], y=.data[[y_axis]], colour=effect_y, group=effect_y)
-this_aes2 <- aes(x=.data[[x_axis]], y=predict_stmsum, group=effect_y)
+this_aes <-
+  aes(
+    x = .data[[x_axis]],
+    y = .data[[y_axis]],
+    colour = effect_y,
+    group = effect_y
+  )
+this_aes2 <-
+  aes(x = .data[[x_axis]], y = predict_stmsum, group = effect_y)
 
 g <- ggplot(data = testData)
 # g <- g + geom_density(alpha=0.05,mapping = this_aes)
-g <- g + theme_set(theme_bw(base_size=4, base_family='HiraKakuProN-W3'))
+g <-
+  g + theme_set(theme_bw(base_size = 4, base_family = 'HiraKakuProN-W3'))
 # g <- g + geom_boxplot(mapping = this_aes, alpha=0.4, notch = TRUE, na.rm = TRUE, colour = '#00009999',data=result_stm_prev )
-# g <- g + geom_point(mapping = this_aes, alpha=0.4, na.rm = TRUE, data=)
 # g <- g + geom_point(mapping = this_aes, alpha=0.4, na.rm = TRUE, colour = '#99000099',data=thisYear)
 # 今年の予想範囲
-# , linetype="dashed", 
-g <- g + geom_path(mapping = this_aes2, na.rm = TRUE, alpha=0.1,linewidth=1, data = testData_predict %>% filter(effect_y != thisYear))
+# , linetype="dashed",
+g <-
+  g + geom_path(
+    mapping = this_aes2,
+    na.rm = TRUE,
+    alpha = 0.1,
+    linewidth = 1,
+    data = testData_predict %>% filter(effect_y != thisYear)
+  )
 # 前年までのデータ
-g <- g + geom_path(mapping = this_aes, na.rm = TRUE, alpha=0.1,data = testData %>% filter(effect_y != thisYear))
+g <-
+  g + geom_path(
+    mapping = this_aes,
+    na.rm = TRUE,
+    alpha = 0.1,
+    data = testData %>% filter(effect_y != thisYear)
+  )
 
 # 今年のデータ
-g <- g + geom_path(mapping = this_aes, na.rm = TRUE, alpha=1,data = testData %>% filter(effect_y == thisYear))
+g <-
+  g + geom_path(
+    mapping = this_aes,
+    na.rm = TRUE,
+    alpha = 1,
+    data = testData %>% filter(effect_y == thisYear)
+  )
 # 2007年以降の開花日の箱ヒゲ図
-g <- g + geom_boxplot(mapping = aes(x=.data[[x_axis]], y=.data[[y_axis]]),lwd=0.4, alpha=0.4, notch = TRUE, na.rm = TRUE, colour = '#00009999',data=testData_actual %>% filter(effect_y %>% as.character() %>% as.integer() > 2007))
+g <-
+  g + geom_boxplot(
+    mapping = aes(x = .data[[x_axis]], y = .data[[y_axis]]),
+    lwd = 0.4,
+    alpha = 0.4,
+    notch = TRUE,
+    na.rm = TRUE,
+    colour = '#00009999',
+    data = testData_actual %>% filter(effect_y %>% as.character() %>% as.integer() > 2007)
+  )
 # 開花日の散布図
-g <- g + geom_point(mapping = this_aes, alpha=0.2, na.rm = TRUE, data=testData_actual %>% filter(effect_y %>% as.character() %>% as.integer() <= 2007))
-g <- g + geom_point(mapping = this_aes, alpha=0.8, na.rm = TRUE, data=testData_actual %>% filter(effect_y %>% as.character() %>% as.integer() > 2007))
+g <-
+  g + geom_point(
+    mapping = this_aes,
+    alpha = 0.2,
+    na.rm = TRUE,
+    data = testData_actual %>% filter(effect_y %>% as.character() %>% as.integer() <= 2007)
+  )
+g <-
+  g + geom_point(
+    mapping = this_aes,
+    alpha = 0.8,
+    na.rm = TRUE,
+    data = testData_actual %>% filter(effect_y %>% as.character() %>% as.integer() > 2007)
+  )
 
 # 今年の予想範囲の箱ヒゲ図
 testData_predict %>% ungroup()
-g <- g + geom_boxplot(mapping = aes(x=.data[[x_axis]], y=predict_stmsum, group=.data[[x_axis]]),lwd=0.1, alpha=0.4, notch = TRUE, na.rm = TRUE, colour = '#00009999', outlier.size = 0.5, data=testData_predict)
+g <-
+  g + geom_boxplot(
+    mapping = aes(x = .data[[x_axis]], y = predict_stmsum, group = .data[[x_axis]]),
+    lwd = 0.1,
+    alpha = 0.4,
+    notch = TRUE,
+    na.rm = TRUE,
+    colour = '#00009999',
+    outlier.size = 0.5,
+    data = testData_predict
+  )
 
-g <- g + geom_path(mapping = aes(x=st_date, y=DTSsum), na.rm = TRUE, alpha=1,data = predict_line, linetype="dotted", colour="red", linewidth=0.2)
-g <- g + geom_point(mapping = aes(x=st_date, y=DTSsum), na.rm = TRUE, alpha=1,data = predict_line, colour="red", size=0.2)
+g <-
+  g + geom_path(
+    mapping = aes(x = st_date, y = DTSsum),
+    na.rm = TRUE,
+    alpha = 1,
+    data = predict_line,
+    linetype = "dotted",
+    colour = "red",
+    linewidth = 0.2
+  )
+g <-
+  g + geom_point(
+    mapping = aes(x = st_date, y = DTSsum),
+    na.rm = TRUE,
+    alpha = 1,
+    data = predict_line,
+    colour = "red",
+    size = 0.2
+  )
 
 # g <- g + scale_y_continuous(breaks=c('0210',56,60,66,72))
 # g <- g + geom_boxplot(mapping = aes_string(x=x_axis, y=y_axis, group='m_jun'), alpha=0.4, notch = TRUE, na.rm = TRUE, colour = '#00009999',data=result_m_d %>% filter(y_num > 2008) %>% filter(NA_y!='2019') %>% group_by(m_jun))
@@ -352,8 +445,20 @@ plot(g)
 ```
 ```{r}
 DsStr <- Ds %>% sub('/', '_', .)
-pdf_file_name <- str_c(y_axis, '_',last_day$st_date %>% format(format="%Y-%m-%d"),'_', DsStr, '_fit_', tmin, '_', tmax, '.pdf')
-quartz(type='pdf', file=pdf_file_name)
+pdf_file_name <-
+  str_c(
+    y_axis,
+    '_',
+    last_day$st_date %>% format(format = "%Y-%m-%d"),
+    '_',
+    DsStr,
+    '_fit_',
+    tmin,
+    '_',
+    tmax,
+    '.pdf'
+  )
+quartz(type = 'pdf', file = pdf_file_name)
 plot(g)
 dev.off()
 
