@@ -15,9 +15,6 @@ https://www.data.jma.go.jp/gmd/risk/obsdl/index.php
 # source('../jma/jma_func.r')
 source('../jma/jma_class_2.r')
 spring_temp <- Jma$new('./')
-```
-
-```{r}
 allData <- spring_temp$allData()
 allData
 # allData %>% filter(y == 2020)
@@ -90,9 +87,6 @@ result_stm <- allData %>% mutate(m_d = str_c(start_m %>% padding_date, start_d %
 # result_stm %>% ungroup()
 
 
-```
-
-```{r}
 # 温度特性値 E alpha 15~18 kcal/mol avr 16.8kcal or 70kJ/mol
 const_E_alpha <- 70000
 # const_E_alpha <- 71100
@@ -150,9 +144,6 @@ fitTS <- function(x, diumalrange, tmin, tmax) {
   return(res)
 }
 
-```
-
-```{r}
 tmin <- -5
 tmax <- 1
 # curve(calc_ts, 0, 10)
@@ -199,11 +190,7 @@ result_stm2 %<>% group_by(effect_y) %>% mutate(DTSsum=cumsum(DTS))
 # result_stm_this <- result_stm %>% ungroup() %>% filter(y_num == 2019) %>% select(m_d,stm_0,stm_5,stm_3,stm_h_5)
 # thisYear <- result_stm %>% filter(y == 2020)
 # result_stm2 %>% ungroup()
-```
 
-
-
-```{r}
 x_axis <- 'x_date'
 # y_axis <- 'stm_h_5'
 # y_axis <- 'stm_5'
@@ -326,15 +313,13 @@ predict_line %<>% add_row(st_date = last_day$st_date %>% as.Date(), DTSsum = las
 
 
 ```{r}
-# thisYear = 2023
 # this_aes <- aes_string(x=x_axis, y=y_axis, colour='effect_y', group='effect_y')
 this_aes <- aes(x=.data[[x_axis]], y=.data[[y_axis]], colour=effect_y, group=effect_y)
 this_aes2 <- aes(x=.data[[x_axis]], y=predict_stmsum, group=effect_y)
 
-# this_aes2 <- aes_string(x=x_axis, y='predict_stmsum', group='effect_y')
 g <- ggplot(data = testData)
 # g <- g + geom_density(alpha=0.05,mapping = this_aes)
-g <- g + theme_set(theme_bw(base_size = 4,base_family='HiraKakuProN-W3'))
+g <- g + theme_set(theme_bw(base_size=4, base_family='HiraKakuProN-W3'))
 # g <- g + geom_boxplot(mapping = this_aes, alpha=0.4, notch = TRUE, na.rm = TRUE, colour = '#00009999',data=result_stm_prev )
 # g <- g + geom_point(mapping = this_aes, alpha=0.4, na.rm = TRUE, data=)
 # g <- g + geom_point(mapping = this_aes, alpha=0.4, na.rm = TRUE, colour = '#99000099',data=thisYear)
@@ -358,8 +343,6 @@ g <- g + geom_boxplot(mapping = aes(x=.data[[x_axis]], y=predict_stmsum, group=.
 
 g <- g + geom_path(mapping = aes(x=st_date, y=DTSsum), na.rm = TRUE, alpha=1,data = predict_line, linetype="dotted", colour="red", linewidth=0.2)
 g <- g + geom_point(mapping = aes(x=st_date, y=DTSsum), na.rm = TRUE, alpha=1,data = predict_line, colour="red", size=0.2)
-
-
 
 # g <- g + scale_y_continuous(breaks=c('0210',56,60,66,72))
 # g <- g + geom_boxplot(mapping = aes_string(x=x_axis, y=y_axis, group='m_jun'), alpha=0.4, notch = TRUE, na.rm = TRUE, colour = '#00009999',data=result_m_d %>% filter(y_num > 2008) %>% filter(NA_y!='2019') %>% group_by(m_jun))
