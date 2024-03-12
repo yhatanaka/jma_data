@@ -302,11 +302,11 @@ pred_last_year <- last_day$start_y %>% as.character
 # 予測最終日以降の予想データ
 # 前年までの，「予測最終日の月日」以降のデータ　年を最終日の年に変えたら予測最終日より後になる日
 testData_predict <-
-  testData %>% filter(str_c(last_year, st_date %>% format(format = "/%m/%d")) %>% as.Date >= pred_last_day$st_date %>% as.Date)
+  testData %>% filter(str_c(pred_last_year, st_date %>% format(format = "/%m/%d")) %>% as.Date >= pred_last_day$st_date %>% as.Date)
 testData_predict %<>% mutate(
   predict_stm = case_when(
-    str_c(last_year, st_date %>% format(format = "/%m/%d")) %>% as.Date > pred_last_day$st_date %>% as.Date ~ DTS,
-    str_c(last_year, st_date %>% format(format = "/%m/%d")) %>% as.Date == pred_last_day$st_date %>% as.Date ~ pred_last_day$DTSsum,
+    str_c(pred_last_year, st_date %>% format(format = "/%m/%d")) %>% as.Date > pred_last_day$st_date %>% as.Date ~ DTS,
+    str_c(pred_last_year, st_date %>% format(format = "/%m/%d")) %>% as.Date == pred_last_day$st_date %>% as.Date ~ pred_last_day$DTSsum,
     TRUE ~ 0
   )
 )
