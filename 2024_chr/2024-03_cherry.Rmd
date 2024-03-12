@@ -217,9 +217,7 @@ testData_actual <-
   testData %>% filter(actual_flag) %>% dplyr::select(all_of(x_axis), start_y, effect_y, all_of(y_axis), actual_flag)
 testData %>% ungroup()
 ```
-```{r}
 
-```
 気象庁　確率予測資料（2週間気温予報）提供ページ
 https://www.data.jma.go.jp/risk/probability/guidance/csv_k2w.php?n=47587
 この先2週間の気温予測ダウンロード(2week_t_47587.csv)、「predict」に入れておく。
