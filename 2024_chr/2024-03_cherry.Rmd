@@ -13,7 +13,7 @@ https://www.data.jma.go.jp/gmd/risk/obsdl/index.php
 
 ```{r}
 source('../jma/jma_class_2.r')
-spring_temp = Jma$new('./')
+spring_temp <- Jma$new('./')
 allData <- spring_temp$allData()
 # allData %>% filter(y == 2020)
 ```
