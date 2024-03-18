@@ -245,8 +245,10 @@ readDataFile <- function(csv_f) {
     #   moddata_list <- data_files %>% lapply(readDataFile)
     #   return(moddata_list)
     # }
-# sakata_climate_predict <- readDataFile('predict/2week_t_47587.csv')
-sakata_climate_predict <- readDataFile('https://www.data.jma.go.jp/risk/probability/guidance/download2w.php?2week_t_47587.csv')
+get_predict_by_net = TRUE
+sakata_climate_predict_loc = ifelse(get_predict_by_net, 'https://www.data.jma.go.jp/risk/probability/guidance/download2w.php?2week_t_47587.csv',  'predict/2week_t_47587.csv')
+sakata_climate_predict <- readDataFile(sakata_climate_predict_loc)
+
 sakata_climate_predict %<>% select(1:7, 9, 11, 215)
 names(sakata_climate_predict) <-
   c('s_y',
