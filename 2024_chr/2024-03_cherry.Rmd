@@ -13,7 +13,7 @@ https://www.data.jma.go.jp/gmd/risk/obsdl/index.php
 
 ```{r}
 source('../jma/jma_class_2.r')
-spring_temp <- Jma$new('./')
+spring_temp = Jma$new('./')
 allData <- spring_temp$allData()
 # allData %>% filter(y == 2020)
 ```
@@ -35,7 +35,8 @@ sakata_chr <- read_jma("others/sakata_chr_1990-2019.csv")
 # sakata_chr_Dd <- sakata_chr$Dd
 # 開花日の年月日
 sakata_chr_d2 <-
-  str_c(sakata_chr$y, '-', sakata_chr$m, '-', sakata_chr$d) %>% as.Date
+  # str_c(sakata_chr$y, '-', sakata_chr$m, '-', sakata_chr$d) %>% as.Date
+  make_date(sakata_chr$y, sakata_chr$m, sakata_chr$d)
 # 年を列名に（Hash的構造）
 names(sakata_chr_d2) <- sakata_chr$y
 # names(sakata_chr_Dd) <- sakata_chr$y
@@ -259,7 +260,7 @@ names(sakata_climate_predict) <-
     'diff_avr',
     'avr')
 # 1 平均気温, 2 最高気温, 3 最低気温
-sakata_climate_predict %<>% filter(kind == 1) %>% mutate_at(vars(starts_with('s_')), as.character) %>% mutate_at(vars(starts_with('e_')), as.character) %>% mutate(st_date = str_c(s_y, '/', s_m, '/', s_d) %>% as.Date) %>% mutate(end_date = str_c(e_y, '/', e_m, '/', e_d) %>% as.Date) %>% mutate(平均気温  = (diff_avr + avr)/10)
+sakata_climate_predict %<>% filter(kind == 1) %>% mutate_at(vars(starts_with('s_')), as.character) %>% mutate_at(vars(starts_with('e_')), as.character) %>% mutate(st_date = make_date(s_y, s_m, s_d)) %>% mutate(end_date = make_date(e_y, e_m, e_d)) %>% mutate(平均気温  = (diff_avr + avr)/10)
 
 
 # データの最終日
@@ -302,11 +303,12 @@ pred_last_year <- last_day$start_y %>% as.character
 # 予測最終日以降の予想データ
 # 前年までの，「予測最終日の月日」以降のデータ　年を最終日の年に変えたら予測最終日より後になる日
 testData_predict <-
-  testData %>% filter(str_c(pred_last_year, st_date %>% format(format = "/%m/%d")) %>% as.Date >= pred_last_day$st_date %>% as.Date)
+  # testData %>% filter(str_c(pred_last_year, st_date %>% format(format = "/%m/%d")) %>% as.Date >= pred_last_day$st_date %>% as.Date)
+  testData %>% filter(make_date(pred_last_year, month(st_date), day(st_date))  >= pred_last_day$st_date %>% as.Date)
 testData_predict %<>% mutate(
   predict_stm = case_when(
-    str_c(pred_last_year, st_date %>% format(format = "/%m/%d")) %>% as.Date > pred_last_day$st_date %>% as.Date ~ DTS,
-    str_c(pred_last_year, st_date %>% format(format = "/%m/%d")) %>% as.Date == pred_last_day$st_date %>% as.Date ~ pred_last_day$DTSsum,
+    make_date(pred_last_year, month(st_date), day(st_date)) > pred_last_day$st_date %>% as.Date ~ DTS,
+    make_date(pred_last_year, month(st_date), day(st_date)) == pred_last_day$st_date %>% as.Date ~ pred_last_day$DTSsum,
     TRUE ~ 0
   )
 )
