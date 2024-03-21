@@ -246,8 +246,8 @@ readDataFile <- function(csv_f) {
     #   return(moddata_list)
     # }
 
-get_predict_by_net = FALSE
-# get_predict_by_net = TRUE
+# get_predict_by_net = FALSE
+get_predict_by_net = TRUE
 sakata_climate_predict_loc = ifelse(get_predict_by_net, 'https://www.data.jma.go.jp/risk/probability/guidance/download2w.php?2week_t_47587.csv',  'predict/2week_t_47587.csv')
 sakata_climate_predict <- readDataFile(sakata_climate_predict_loc)
 
