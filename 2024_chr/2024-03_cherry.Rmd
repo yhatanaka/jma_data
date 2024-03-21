@@ -245,7 +245,9 @@ readDataFile <- function(csv_f) {
     #   moddata_list <- data_files %>% lapply(readDataFile)
     #   return(moddata_list)
     # }
-get_predict_by_net = TRUE
+
+get_predict_by_net = FALSE
+# get_predict_by_net = TRUE
 sakata_climate_predict_loc = ifelse(get_predict_by_net, 'https://www.data.jma.go.jp/risk/probability/guidance/download2w.php?2week_t_47587.csv',  'predict/2week_t_47587.csv')
 sakata_climate_predict <- readDataFile(sakata_climate_predict_loc)
 
@@ -334,6 +336,11 @@ this_aes2 <-
 
 g <- ggplot(data = testData)
 # g <- g + geom_density(alpha=0.05,mapping = this_aes)
+
+# 1日ごとに minor 目盛
+g <- g + scale_x_date(
+  # date_breaks = "10 day",
+  date_labels = "%m/%d", minor_breaks = "1 day")
 g <-
   g + theme_set(theme_bw(base_size = 4, base_family = 'HiraKakuProN-W3'))
 # g <- g + geom_boxplot(mapping = this_aes, alpha=0.4, notch = TRUE, na.rm = TRUE, colour = '#00009999',data=result_stm_prev )
