@@ -372,7 +372,7 @@ g <-
     alpha = 1,
     data = testData %>% filter(effect_y == thisYear)
   )
-# 2007年以降の開花日の箱ヒゲ図
+# 2008年以降の開花日の箱ヒゲ図
 g <-
   g + geom_boxplot(
     mapping = aes(x = .data[[x_axis]], y = .data[[y_axis]]),
