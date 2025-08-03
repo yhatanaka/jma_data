@@ -1,0 +1,23 @@
+---
+title: "飛島 最高気温k"
+output: html_notebook
+---
+
+```{r eval=FALSE, include=FALSE}
+install.packages('tidyverse')
+```
+```{r}
+source('../jma/jma_class_2.r')
+jma_data <- Jma$new('./')
+```
+
+```{r}
+allData <- jma_data$allData()
+
+# allData %>% filter(place=酒田) %>% group_by(start_m) %>% mutate(rain_month = sum(降水量_平年値 %>% as.character() %>% as.numeric()))
+```
+```{r}
+# allData %<>% group_by(start_y) %>% mutate(降雪積算=cumsum(降雪量合計))
+allData %>% select(place) %>% unique()
+```
+
