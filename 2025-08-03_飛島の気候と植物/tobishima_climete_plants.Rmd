@@ -37,7 +37,7 @@ install.packages('tidyverse')
 getwd()
 ```
 
-```{r}
+```{r データ}
 source('../jma/jma_class_2.r')
 
 period <- '月'
@@ -47,6 +47,171 @@ displ <- '分割'
 
 csv_file <- paste0('csv/', period, '_', displ, '.csv')
 jma_data <- Jma$new(csv_file)
-allData <- jma_data$allData_test()
+allData <- jma_data$allData()
 
 ```
+```{r 月平均気温}
+x_axis = 'start_m'
+# x_axis = 'm_d'
+y_axis = '平均気温_平年値'
+exp_x = sym(x_axis)
+exp_y = sym(y_axis)
+
+# testData <- allData %>% dplyr::select(start_m)
+# testData %<>% mutate(start_m = start_m %>% as.character %>% as.integer)
+# testData
+y_axisNumData <- allData %>% dplyr::filter(place %in% c('にかほ','酒田','飛島')) %>% mutate({{ x_axis }} := (!!exp_x) %>% as.character %>% as.integer) %>% mutate({{ y_axis }} := (!!exp_y) %>% as.numeric) %>% group_by(place)
+
+this_aes <- aes(x=.data[[x_axis]], y=.data[[y_axis]], colour=place, group=place, linetype=place)
+g <- ggplot(data = y_axisNumData)
+g <- g + theme_set(theme_bw(base_size = 12, base_family='HiraKakuProN-W3'))
+# グラフ左上の方(0.1, 0.9)の位置に、凡例の左上(0,1)を
+g <- g + theme(axis.text.x = element_text(vjust = 0.5, hjust = 1), legend.position=c(0.05,0.95), legend.justification=c(0,1))
+# g <- g + theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust = 1))
+
+
+g <- g + geom_line(mapping = this_aes, lwd = 1, na.rm = TRUE)
+g <- g + geom_point(mapping = this_aes, size = 3, shape = 16, solid = TRUE)
+# g <- g + scale_linetype_manual(values = c('にかほ'='dashed', '札幌'='dotted', '山形'='dotted', '酒田'='dashed', '飛島'='solid'))
+g <- g + scale_x_discrete(name = '月', labels = 1:12, limits = 1:12)
+g <- g + scale_y_continuous(name = '月平均気温 平年値(℃)')
+g <- g + scale_color_hue(name = '')
+g <- g + scale_linetype_manual(values = c('にかほ'='dotted', '酒田'='dotted', '飛島'='solid'), name = '')
+
+g
+```
+```{r PDF保存}
+pdf_file_name <-
+  str_c(
+    y_axis,
+     '.pdf'
+  )
+quartz(type = 'pdf', file = pdf_file_name)
+plot(g)
+dev.off()
+
+```
+```{r 冬}
+winterMonth = c(12, 1, 2, 3)
+winterMonthChar = c('12', '1', '2', '3')
+winterData <- y_axisNumData %>% dplyr::filter(start_m %in% winterMonth) %>% mutate(start_m = start_m %>% as.character)
+
+g2 <- ggplot(data = winterData)
+g2 <- g2 + theme_set(theme_bw(base_size = 12, base_family='HiraKakuProN-W3'))
+g2 <- g2 + theme(axis.text.x = element_text(vjust = 0.5, hjust = 1), legend.position=c(0.95,0.05), legend.justification=c(1,0))
+g2 <- g2 + geom_line(mapping = this_aes, lwd = 1, na.rm = TRUE)
+g2 <- g2 + geom_point(mapping = this_aes, size = 3, shape = 16, solid = TRUE)
+g2 <- g2 + scale_x_discrete(name = '月', labels = winterMonthChar, limits =  winterMonthChar)
+g2 <- g2 + scale_y_continuous(name = '月平均気温 平年値(℃)')
+g2 <- g2 + scale_color_hue(name = '')
+g2 <- g2 + scale_linetype_manual(values = c('にかほ'='dotted', '酒田'='dotted', '飛島'='solid'), name = '')
+g2
+```
+
+```{r 冬最高気温}
+y_axis_3 = '日最高気温_平年値'
+exp_y_3 = sym(y_axis_3)
+
+winterDataHigh <- winterData %>% mutate({{ y_axis_3 }} := (!!exp_y_3) %>% as.numeric)
+
+this_aes_3 <- aes(x=.data[[x_axis]], y=.data[[y_axis_3]], colour=place, group=place, linetype=place)
+
+g3 <- ggplot(data = winterDataHigh)
+g3 <- g3 + theme_set(theme_bw(base_size = 12, base_family='HiraKakuProN-W3'))
+g3 <- g3 + theme(axis.text.x = element_text(vjust = 0.5, hjust = 1), legend.position=c(0.95,0.05), legend.justification=c(1,0))
+g3 <- g3 + geom_line(mapping = this_aes_3, lwd = 1, na.rm = TRUE)
+g3 <- g3 + geom_point(mapping = this_aes_3, size = 3, shape = 16, solid = TRUE)
+g3 <- g3 + scale_x_discrete(name = '月', labels = winterMonthChar, limits =  winterMonthChar)
+g3 <- g3 + scale_y_continuous(name = '日最高気温 平年値(℃)')
+g3 <- g3 + scale_color_hue(name = '')
+g3 <- g3 + scale_linetype_manual(values = c('にかほ'='dotted', '酒田'='dotted', '飛島'='solid'), name = '')
+g3
+```
+
+```{r 冬最低気温}
+y_axis_4 = '日最低気温_平年値'
+exp_y_4 = sym(y_axis_4)
+
+winterDataLow <- winterData %>% mutate({{ y_axis_4 }} := (!!exp_y_4) %>% as.numeric)
+
+this_aes_4 <- aes(x=.data[[x_axis]], y=.data[[y_axis_4]], colour = place, group = place, linetype = place)
+
+g4 <- ggplot(data = winterDataLow)
+g4 <- g4 + theme_set(theme_bw(base_size = 12, base_family = 'HiraKakuProN-W3'))
+g4 <- g4 + theme(axis.text.x = element_text(vjust = 0.5, hjust = 1), legend.position=c(0.95,0.05), legend.justification=c(1,0))
+g4 <- g4 + geom_line(mapping = this_aes_4, lwd = 1, na.rm = TRUE)
+g4 <- g4 + geom_point(mapping = this_aes_4, size = 3, shape = 16, solid = TRUE)
+g4 <- g4 + scale_x_discrete(name = '月', labels = winterMonthChar, limits =  winterMonthChar)
+g4 <- g4 + scale_y_continuous(name = '日最低気温 平年値(℃)')
+g4 <- g4 + scale_color_hue(name = '')
+g4 <- g4 + scale_linetype_manual(values = c('にかほ'='dotted', '酒田'='dotted', '飛島'='solid'), name = '')
+g4
+```
+```{r 真冬日}
+y_axis_5 = '日最高気温0℃未満日数_平年値'
+exp_y_5 = sym(y_axis_5)
+
+winterDatabelow0 <- winterData %>% mutate({{ y_axis_5 }} := (!!exp_y_5) %>% as.numeric)
+winterDatabelow0 %<>% select(!!exp_x,!!exp_y_5) %>% summarise(total_below0 = sum(!!exp_y_5))
+winterDatabelow0
+this_aes_5 <- aes(x = place, y = total_below0, fill = place)
+
+g5 <- ggplot(data = winterDatabelow0)
+g5 <- g5 + theme_set(theme_bw(base_size = 12, base_family = 'HiraKakuProN-W3'))
+g5 <- g5 + theme(axis.text.x = element_text(vjust = 0.5, hjust = 1), legend.position='none')
+g5 <- g5 + geom_bar(mapping = this_aes_5, stat='identity')
+g5 <- g5 + scale_x_discrete(name = '')
+g5 <- g5 + scale_y_continuous(name = '日最高気温0℃未満(真冬日)日数 平年値')
+g5 <- g5 + scale_color_hue(name = '')
+# g5 <- g5 + scale_linetype_manual(values = c('にかほ'='dotted', '酒田'='dotted', '飛島'='solid'), name = '')
+g5
+
+```
+
+```{r 平均風速}
+y_axis_6 = '平均風速_平年値'
+exp_y_6 = sym(y_axis_6)
+
+windData <- y_axisNumData %>% mutate({{ y_axis_6 }} := (!!exp_y_6) %>% as.numeric)
+
+this_aes_6 <- aes(x=.data[[x_axis]], y=.data[[y_axis_6]], colour=place, group=place, linetype=place)
+g6 <- ggplot(data = windData)
+g6 <- g6 + theme_set(theme_bw(base_size = 12, base_family='HiraKakuProN-W3'))
+g6 <- g6 + theme(axis.text.x = element_text(vjust = 0.5, hjust = 1), legend.position=c(0.7,1), legend.justification=c(0,1))
+
+
+g6 <- g6 + geom_line(mapping = this_aes_6, lwd = 1, na.rm = TRUE,)
+g6 <- g6 + geom_point(mapping = this_aes_6, size = 3, shape = 16)
+g6 <- g6 + scale_x_discrete(name = '月', labels = 1:12, limits = 1:12)
+g6 <- g6 + scale_y_continuous(name = '平均風速 平年値(m/s)')
+g6 <- g6 + scale_color_hue(name = '')
+g6 <- g6 + scale_linetype_manual(values = c('にかほ'='dotted', '酒田'='dotted', '飛島'='solid'), name = '')
+
+g6
+```
+
+```{r 夏最高気温}
+y_axis_7 = '日最高気温_平年値'
+exp_y_7 = sym(y_axis_7)
+
+summerMonth = c(6, 7, 8, 9)
+summerMonthChar = c('6', '7', '8', '9')
+summerData <- y_axisNumData %>% dplyr::filter(start_m %in% summerMonth) %>% mutate(start_m = start_m %>% as.character)
+
+summerDataHigh <- summerData %>% mutate({{ y_axis_7 }} := (!!exp_y_7) %>% as.numeric)
+
+this_aes_7 <- aes(x=.data[[x_axis]], y=.data[[y_axis_7]], colour=place, group=place, linetype=place)
+
+g7 <- ggplot(data = summerDataHigh)
+g7 <- g7 + theme_set(theme_bw(base_size = 12, base_family='HiraKakuProN-W3'))
+g7 <- g7 + theme(axis.text.x = element_text(vjust = 0.5, hjust = 1), legend.position=c(0.95,0.99), legend.justification=c(1,1))
+g7 <- g7 + geom_line(mapping = this_aes_7, lwd = 1, na.rm = TRUE)
+g7 <- g7 + geom_point(mapping = this_aes_7, size = 3, shape = 16, solid = TRUE)
+g7 <- g7 + scale_x_discrete(name = '月', labels = summerMonthChar, limits =  summerMonthChar)
+g7 <- g7 + scale_y_continuous(name = '日最高気温 平年値(℃)')
+g7 <- g7 + scale_color_hue(name = '')
+g7 <- g7 + scale_linetype_manual(values = c('にかほ'='dotted', '酒田'='dotted', '飛島'='solid'), name = '')
+g7
+
+```
+
