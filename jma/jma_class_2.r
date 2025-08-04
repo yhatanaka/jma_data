@@ -76,7 +76,8 @@ Jma <- R6Class(
       # データのヘッダ部分削除
       databody_tbl <- data_tbl %>% private$dataRows(headers_end)
       # 年月日の部分 + 開始年・月・日から日付の列 st_date
-      ymd_tbl <- databody_tbl %>% private$ymdCols(ymd_end2) %>% mutate_all(as.factor)
+      # ymd_tbl <- databody_tbl %>% private$ymdCols(ymd_end2) %>% mutate_all(as.factor)
+      ymd_tbl <- databody_tbl %>% private$ymdCols(ymd_end2)
       if (ncol(ymd_tbl) == 2) {
         ymd_tbl %<>% mutate(st_date = str_c(.$X1, .$X2, sep = '/'))
       } else if (ncol(ymd_tbl) >= 3) {
