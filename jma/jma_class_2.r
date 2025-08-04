@@ -97,7 +97,7 @@ Jma <- R6Class(
                              place_row_vec,
                              data_col_name)
       # 年月日の後に地点毎のデータくっつけて，最後に全地点のデータ一つにまとめる
-      compositedData <- ymd_tbl %>% cbind(place_data_list)
+      compositedData <- lapply(place_data_list, function(x){cbind(ymd_tbl, x)})
       return(compositedData)
     }
     ,
