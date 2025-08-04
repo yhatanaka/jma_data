@@ -50,7 +50,7 @@ thisPlaceData2 <- thisPlaceData %>% filter(display_ymd >= start_m_d %>% as.Date)
 
 # allData %>% filter(place=='酒田')
 # paste("place=='", thisPlace, "'", sep = '')
-x_axis = 'display_ymd'
+x_axis = 'st_date'
 # x_axis = 'm_d'
 # y_axis = '降水積算'
 # y_axis = '平均気温'
