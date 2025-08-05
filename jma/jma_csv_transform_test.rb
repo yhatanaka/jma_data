@@ -1,4 +1,4 @@
-!/usr/bin/ruby
+#!/usr/bin/ruby
 # -*- coding: utf-8 -*-
 #$KCODE='UTF8'
 Encoding.default_external = "UTF-8"
