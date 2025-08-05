@@ -242,7 +242,8 @@ Jma <- R6Class(
     headerRowEnd = function(data_tbl) {
 # 年月日が"YYYY/MM/DD"形式の場合に備えて、先頭2列ははずす
       result <-
-        (data_tbl[, 3] %>% purrr::map(as.numeric) %>% map({~ !is.na(.)}) %>% flatten_lgl %>% which %>% min) - 1
+        (data_tbl[, 3] %>% purrr::map(as.numeric) %>% map({~ !is.na(.)}) %>% list_c(ptype = logical()) %>% which %>% min) - 1
+      # (data_tbl[, 3] %>% purrr::map(as.numeric) %>% map({~ !is.na(.)}) %>% flatten_lgl %>% which %>% min) - 1
       return(result)
     }
     ,
