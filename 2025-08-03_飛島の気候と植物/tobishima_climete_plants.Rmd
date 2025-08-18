@@ -2,11 +2,15 @@
 title: "飛島の気候と植物"
 author: "Y. Hatanaka"
 date: "`r Sys.Date()`"
-output: html_document
+output: html_notebook
 ---
 
-```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = FALSE)
+```{r setup, include=TRUE}
+knitr::opts_chunk$set(
+	echo = FALSE,
+	include = TRUE,
+	results = "markup"
+)
 ```
 
 
@@ -18,7 +22,9 @@ install.packages('tidyverse')
 
 ```{r データ}
 source('../jma/jma_class_2.r')
+```
 
+```{r}
 period <- '月'
 # period <- '旬'
 displ <- '分割'
@@ -29,20 +35,17 @@ jma_data <- Jma$new(csv_file)
 allData <- jma_data$allData()
 
 ```
-```{r eval=FALSE, include=FALSE}
+
+```{r データCSV保存用, eval=FALSE, include=FALSE}
 csv_file_name <-
-  str_c(
-    'allData_',
-  	period,
-    '-',
-    displ,
-    '.csv'
+  str_c('allData_', period, '-', displ, '.csv'
   )
 
-write.csv(allData, file = csv_file_name)
+# write.csv(allData, file = csv_file_name)
 ```
 
-
+飛島の年平均気温、酒田・にかほより低い。
+（特に夏季の月平均気温が低い）
 ```{r 月平均気温}
 title = '年間-'
 x_axis = 'start_m'
@@ -71,6 +74,8 @@ g <- g + scale_color_hue(name = '')
 g <- g + scale_linetype_manual(values = c('にかほ'='dotted', '酒田'='dotted', '飛島'='solid'), name = '')
 
 g
+pdf_width = 7
+pdf_height = 5
 ```
 ```{r PDF保存, eval=FALSE, include=FALSE}
 pdf_file_name <-
@@ -79,13 +84,14 @@ pdf_file_name <-
   	y_axis,
     '.pdf'
   )
-quartz(type = 'pdf', file = pdf_file_name)
+quartz(type = 'pdf', file = pdf_file_name, width = pdf_width, height = pdf_height)
 plot(g)
 dev.off()
 
 ```
 
-
+「冬あったかい」？
+酒田と比べて、月平均気温の違いはせいぜい 0.1〜0.3℃くらい。
 ```{r 冬}
 title = '冬季-'
 x_axis = 'start_m'
@@ -103,12 +109,15 @@ g <- g + theme(axis.text.x = element_text(vjust = 0.5, hjust = 1), legend.positi
 g <- g + geom_line(mapping = this_aes, lwd = 1, na.rm = TRUE)
 g <- g + geom_point(mapping = this_aes, size = 3, shape = 16, solid = TRUE)
 g <- g + scale_x_discrete(name = '月', labels = winterMonthChar, limits =  winterMonthChar)
-g <- g + scale_y_continuous(name = '月平均気温 平年値(℃)')
+g <- g + scale_y_continuous(name = '月平均気温(12月〜3月) 平年値(℃)')
 g <- g + scale_color_hue(name = '')
 g <- g + scale_linetype_manual(values = c('にかほ'='dotted', '酒田'='dotted', '飛島'='solid'), name = '')
 g
-```
+pdf_width = 7
+pdf_height = 5
 
+```
+日最高気温はほぼ同じ
 ```{r 冬最高気温}
 title = '冬季-'
 x_axis = 'start_m'
@@ -125,12 +134,15 @@ g <- g + theme(axis.text.x = element_text(vjust = 0.5, hjust = 1), legend.positi
 g <- g + geom_line(mapping = this_aes, lwd = 1, na.rm = TRUE)
 g <- g + geom_point(mapping = this_aes, size = 3, shape = 16, solid = TRUE)
 g <- g + scale_x_discrete(name = '月', labels = winterMonthChar, limits =  winterMonthChar)
-g <- g + scale_y_continuous(name = '日最高気温 平年値(℃)')
+g <- g + scale_y_continuous(name = '日最高気温(12月〜3月) 平年値(℃)')
 g <- g + scale_color_hue(name = '')
 g <- g + scale_linetype_manual(values = c('にかほ'='dotted', '酒田'='dotted', '飛島'='solid'), name = '')
 g
-```
+pdf_width = 7
+pdf_height = 5
 
+```
+日最低気温だと0.5〜0.7℃違ってくる
 ```{r 冬最低気温}
 title = '冬季-'
 x_axis = 'start_m'
@@ -147,11 +159,16 @@ g <- g + theme(axis.text.x = element_text(vjust = 0.5, hjust = 1), legend.positi
 g <- g + geom_line(mapping = this_aes, lwd = 1, na.rm = TRUE)
 g <- g + geom_point(mapping = this_aes, size = 3, shape = 16, solid = TRUE)
 g <- g + scale_x_discrete(name = '月', labels = winterMonthChar, limits =  winterMonthChar)
-g <- g + scale_y_continuous(name = '日最低気温 平年値(℃)')
+g <- g + scale_y_continuous(name = '日最低気温(12月〜3月) 平年値(℃)')
 g <- g + scale_color_hue(name = '')
 g <- g + scale_linetype_manual(values = c('にかほ'='dotted', '酒田'='dotted', '飛島'='solid'), name = '')
 g
+pdf_width = 7
+pdf_height = 5
+
 ```
+
+かと思うと、日最高気温が0℃未満の日（俗に言う「真冬日」）は、酒田より多い。
 ```{r 真冬日}
 title = '真冬日-'
 x_axis = 'start_m'
@@ -172,9 +189,13 @@ g <- g + scale_y_continuous(name = '日最高気温0℃未満(真冬日)日数 �
 g <- g + scale_color_hue(name = '')
 # g <- g + scale_linetype_manual(values = c('にかほ'='dotted', '酒田'='dotted', '飛島'='solid'), name = '')
 g
+pdf_width = 7
+pdf_height = 5
 
 ```
+気温の日較差が小さいと、日平均気温がマイナスの場合、最高気温もマイナスになり「真冬日」になる可能性が大きくなる
 
+冬の北西季節風が強い。
 ```{r 平均風速}
 title = '年間-'
 x_axis = 'start_m'
@@ -197,8 +218,12 @@ g <- g + scale_color_hue(name = '')
 g <- g + scale_linetype_manual(values = c('にかほ'='dotted', '酒田'='dotted', '飛島'='solid'), name = '')
 
 g
-```
+pdf_width = 7
+pdf_height = 5
 
+```
+西海岸の波蝕棚が特徴的だが、それだけでなく高木の生育が妨げられ、ゼンテイカなど草原性植物の生育環境が成立する。
+また、夏季の月平均気温が酒田より1〜1.5℃低い。
 ```{r 夏最高気温}
 title = '夏季-'
 x_axis = 'start_m'
@@ -219,10 +244,70 @@ g <- g + theme(axis.text.x = element_text(vjust = 0.5, hjust = 1), legend.positi
 g <- g + geom_line(mapping = this_aes, lwd = 1, na.rm = TRUE)
 g <- g + geom_point(mapping = this_aes, size = 3, shape = 16, solid = TRUE)
 g <- g + scale_x_discrete(name = '月', labels = summerMonthChar, limits =  summerMonthChar)
-g <- g + scale_y_continuous(name = '日最高気温 平年値(℃)')
+g <- g + scale_y_continuous(name = '日最高気温(6月〜9月) 平年値(℃)')
 g <- g + scale_color_hue(name = '')
 g <- g + scale_linetype_manual(values = c('にかほ'='dotted', '酒田'='dotted', '飛島'='solid'), name = '')
 g
+pdf_width = 7
+pdf_height = 5
+```
+```{r}
+summerDataHigh %>% select(y_axis %>% as.name, start_m) %>% dplyr::filter(place %in% c('酒田', '飛島')) %>% ungroup %>% pivot_wider(names_from = place, values_from = 日最高気温_平年値) %>% mutate(diff = 飛島 - 酒田)
 
+```
+
+```{r 最低気温○℃未満日数}
+lowist_csv_file <- './lowist/'
+lowist_data <- Jma$new(lowist_csv_file)
+lowistData <- lowist_data$allData() %>% mutate(最低気温 = 最低気温 %>% as.numeric) %>% mutate(place = place %>% as.factor) %>% group_by(place)
+```
+
+```{r}
+# 日最低気温の閾値
+low_temp_threshold_vec <- c(-4, -5, -6, -7, -8)
+lenUnderPnt <- 1
+# 日最低気温がそれぞれの閾値より低い日を集める、場所ごとにカウントし年平均日数に、閾値の列をつける
+eachThresholdData <- low_temp_threshold_vec %>% map(.f = ~ lowistData %>% dplyr::filter(最低気温 < .x) %>% group_by(place) %>% count() %>% mutate(thrshld = .x %>% as.factor) ) %>% bind_rows()
+eachThresholdData %<>% group_by(place) %>% mutate(lead = lead(n, default = 0, order_by = thrshld)) %>% mutate(thisTemp = n - lead) %>% mutate(thisTempPerY = thisTemp/(2024-1978+1)) %>% mutate(thisTempPerYRnd = thisTempPerY %>% round(lenUnderPnt) %>% format(nsmall = lenUnderPnt)) %>% mutate(labelPos = n/(2024-1978+1))
+# eachThresholdData <- low_temp_threshold_vec %>% map(.f = ~ lowistData %>% dplyr::filter(最低気温 < .x) %>% count() %>% mutate(n = n/(2024-1978+1)) %>% mutate(thrshld = .x)) %>% bind_rows()
+eachThresholdData
+```
+
+日最低気温がどこまで下がる日が年平均何日あるか
+```{r}
+this_aes <- aes(x = place, y = thisTempPerY, colour = thrshld, fill = thrshld, alpha = 0.5)
+g <- ggplot(data = eachThresholdData)
+g <- g + theme_set(theme_bw(base_size = 12, base_family = 'HiraKakuProN-W3'))
+g <- g + theme(axis.text.x = element_text(vjust = 0.5, hjust = 1), legend.position=c(0.95,0.99), legend.justification=c(1,1))
+# g <- g + theme(axis.text.x = element_text(vjust = 0.5, hjust = 1), legend.position='none')
+g <- g + geom_bar(mapping = this_aes, stat='identity')
+# g <- g + geom_bar(mapping = this_aes, stat='identity', position = 'dodge')
+# g <- g + scale_x_discrete(name = '')
+# g <- g + scale_y_continuous(name = '日最高気温0℃未満(真冬日)日数 平年値')
+# g <- g + scale_color_hue(name = '')
+# g <- g + geom_text(aes(x = place, y = , label = thisTempPerYRnd))
+g <- g + geom_text(aes(x = place,  y = labelPos, label = thisTempPerYRnd), stat = 'identity', vjust = 1.5, colour = "black", size = 3)
+# g <- g + scale_color_fermenter()
+g <- g + scale_y_continuous(name = '年平均日数(1978年12月〜2025年3月)')
+g <- g + scale_x_discrete(name = '観測地点')
+# viridis 凡例変え、色の割り当てを逆転
+g <- g + scale_fill_viridis_d(option = "viridis", name = "日最低気温", labels = c("-4" = "-4℃ >  ≧ -5℃", "-5" = "-5℃ >  ≧ -6℃", "-6" = "-6℃ >  ≧ -7℃", "-7" = "-7℃ >  ≧ -8℃", "-8" = "-8℃ >"), direction = -1)
+# g <- g + scale_color_hue(name = "関数", labels = c("-4" = "-4℃", "-5" = "-5℃", "-6" = "-6℃", "-7" = "-7℃", "-8" = "-8℃"))
+g <- g + guides(colour = "none", alpha = "none")
+g <- g + scale_linetype_manual(name = '')
+
+g
+pdf_width = 5
+pdf_height = 7
+
+```
+```{r eval=FALSE, include=FALSE}
+quartz(type = 'pdf', file = '日最低気温.pdf', width = pdf_width, height = pdf_height)
+plot(g)
+dev.off()
+
+```
+```{r eval=FALSE, include=FALSE}
+# write.csv(eachThresholdData, file = "lowist.csv")
 ```
 
