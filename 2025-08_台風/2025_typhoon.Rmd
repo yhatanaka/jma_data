@@ -1,0 +1,139 @@
+---
+title: "飛島の気候と植物"
+author: "Y. Hatanaka"
+date: "`r Sys.Date()`"
+output: html_notebook
+---
+
+```{r setup, include=TRUE}
+knitr::opts_chunk$set(
+	echo = FALSE,
+	include = TRUE,
+	results = "markup"
+)
+```
+
+
+
+```{r eval=FALSE, include=FALSE}
+install.packages('tidyverse')
+```
+
+/Users/hatanaka/Documents/jma_data/2025-08_台風/generation_j.csv
+/Users/hatanaka/Documents/jma_data/2025-08_台風/generation.csv
+/Users/hatanaka/Documents/jma_data/2025-08_台風/landing.csv
+
+```{r データ}
+library("tidyverse")
+library("magrittr")
+
+# csv_f_name <- 'generation_j'
+# csv_f_name <- 'generation'
+csv_f_name <- 'landing'
+
+csv_f <- str_c(csv_f_name, '.csv')
+f <-
+  read_csv(
+    csv_f
+    ,
+    col_names = TRUE
+    ,
+    skip = 0
+    ,
+    skip_empty_rows = TRUE
+    ,
+    n_max = Inf
+    ,
+    # 余計な変換（2000行超えると、タイプの違うデータ読み飛ばしたりする。例えば、ヘッダに相当する「年」「月」「日」）
+    col_types = cols(.default = "c")
+    ,
+    locale =  readr::locale(encoding = "cp932")
+  )
+# 空行削除
+# return(f %>% filter(rowSums(is.na(.)) != ncol(.)))
+
+
+```
+```{r}
+yearMean <- f %>% mutate(年間 = 年間 %>% as.numeric) %>% summarise(mean = mean(年間))
+yearMean
+
+```
+
+
+```{r}
+
+f_long <- f %>% pivot_longer(cols = ends_with("月")) %>% mutate(value = value %>% as.numeric)
+
+yearVec <- f['年'] %>% mutate(年 = 年 %>% as.numeric)
+startYear <- yearVec %>% min
+endYear <- yearVec %>% max
+yearPeriod = endYear - startYear + 1
+
+startYear
+endYear
+
+eachMonthTotal <- f_long %>% summarise(total = sum(value, na.rm = TRUE), .by = c(name)) %>% mutate(totalPerYear = total/yearPeriod)
+```
+
+
+```{r 月平均気温}
+title = '年間-'
+x_axis = 'name'
+y_axis = 'totalPerYear'
+exp_y = as.name(y_axis)
+
+
+this_aes <- aes(x=.data[[x_axis]], y=.data[[y_axis]])
+# this_aes <- aes(x=.data[[x_axis]], y=.data[[y_axis]], colour=place, group=place, linetype=place)
+g <- ggplot(data = eachMonthTotal)
+g <- g + theme_set(theme_bw(base_size = 12, base_family='HiraKakuProN-W3'))
+# グラフ左上の方(0.1, 0.9)の位置に、凡例の左上(0,1)を
+g <- g + theme(axis.text.x = element_text(vjust = 0.5, hjust = 1), legend.position.inside = c(0.05,0.95), legend.justification=c(0,1))
+# g <- g + theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust = 1))
+
+
+g <- g + geom_bar(mapping = this_aes, stat = 'identity')
+g <- g + scale_x_discrete(limit = c('1月', '2月', '3月', '4月', '5月', '6月', '7月', '8月', '9月', '10月', '11月', '12月'))
+# g <- g + geom_point(mapping = this_aes, size = 3, shape = 16, solid = TRUE)
+# g <- g + scale_linetype_manual(values = c('にかほ'='dashed', '札幌'='dotted', '山形'='dotted', '酒田'='dashed', '飛島'='solid'))
+# g <- g + scale_x_discrete(name = '月', labels = 1:12, limits = 1:12)
+# g <- g + scale_y_continuous(name = '月平均気温 平年値(℃)')
+# g <- g + scale_color_hue(name = '')
+# g <- g + scale_linetype_manual(values = c('にかほ'='dotted', '酒田'='dotted', '飛島'='solid'), name = '')
+
+g
+pdf_width = 7
+pdf_height = 5
+```
+
+
+
+```{r PDF保存, eval=FALSE, include=FALSE}
+pdf_file_name <-
+  str_c(
+    csv_f_name,
+    '-',
+    y_axis,
+    '.pdf'
+  )
+quartz(type = 'pdf', file = pdf_file_name, width = pdf_width, height = pdf_height)
+plot(g)
+dev.off()
+
+```
+
+```{r}
+eachMonthTotal <- f_long %>% summarise(total = sum(value, na.rm = TRUE), .by = c(name)) %>% mutate(totalPerYear = total/yearPeriod)
+
+
+```
+
+また、夏季の月平均気温が酒田より1〜1.5℃低い。
+
+
+
+```{r eval=FALSE, include=FALSE}
+# write.csv(eachThresholdData, file = "lowist.csv")
+```
+
