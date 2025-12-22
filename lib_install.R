@@ -1,3 +1,10 @@
 install.packages('tidyverse')
 install.packages('magrittr')
 install.packages('R6')
+
+install.packages("vegan")
+install.packages("ecan")
+install.packages("ggdendro")
+install.packages("ggrepel")
+install.packages("ggsci")
+install.packages("cowplot")
