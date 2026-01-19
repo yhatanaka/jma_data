@@ -29,8 +29,8 @@ library(lubridate)
 
 ```{r データ}
 
-csv_f_name <- '2024'
-# csv_f_name <- '2025'
+# csv_f_name <- '2024'
+csv_f_name <- '2025'
 
 csv_f <- str_c(csv_f_name, '.csv')
 f <-
@@ -92,7 +92,7 @@ g <- g + theme_set(theme_bw(base_size = 24, base_family='HiraKakuProN-W3'))
 
 this_aes2 <- aes(x=.data[[x_axis]], y=.data[[y_axis2]])
 g <- g + geom_bar(mapping = this_aes2, stat = 'identity', fill = 'deepskyblue')
-g <- g + geom_bar(mapping = this_aes1, stat = 'identity', fill = 'orange', alpha = 0.6)
+g <- g + geom_bar(mapping = this_aes1, stat = 'identity', fill = 'orange', alpha = 0.8)
 g <- g + theme(axis.text = element_text(color = "black"), axis.title.x = element_blank())
 g <- g + labs(title = "酒田の降水量 平年値との比較 " %>% str_c(csv_f_name, "年"),
        # x = "月",
