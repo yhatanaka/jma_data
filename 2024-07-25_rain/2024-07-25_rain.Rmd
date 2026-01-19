@@ -29,8 +29,8 @@ library(lubridate)
 
 ```{r データ}
 
-# csv_f_name <- '2024'
-csv_f_name <- '2025'
+csv_f_name <- '2024'
+# csv_f_name <- '2025'
 
 csv_f <- str_c(csv_f_name, '.csv')
 f <-
