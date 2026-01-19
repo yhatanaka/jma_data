@@ -1,0 +1,156 @@
+---
+title: "2024年7月25日 大雨"
+author: "Y. Hatanaka"
+date: "`r Sys.Date()`"
+output: html_notebook
+---
+
+```{r setup, include=TRUE}
+knitr::opts_chunk$set(
+	echo = FALSE,
+	include = TRUE,
+	results = "markup"
+)
+```
+
+
+
+```{r eval=FALSE, include=FALSE}
+install.packages('tidyverse')
+```
+
+
+```{r データ}
+library("tidyverse")
+library("magrittr")
+library(lubridate)
+```
+
+
+```{r データ}
+
+# csv_f_name <- '2024'
+csv_f_name <- '2025'
+
+csv_f <- str_c(csv_f_name, '.csv')
+f <-
+  read_csv(
+    csv_f
+    ,
+    col_names = TRUE
+    ,
+    skip = 0
+    ,
+    skip_empty_rows = TRUE
+    ,
+    n_max = Inf
+    ,
+    # 余計な変換（2000行超えると、タイプの違うデータ読み飛ばしたりする。例えば、ヘッダに相当する「年」「月」「日」）
+    col_types = cols(.default = "c")
+    ,
+    locale =  readr::locale(encoding = "cp932")
+  )
+# 空行削除
+# return(f %>% filter(rowSums(is.na(.)) != ncol(.)))
+
+
+```
+
+```{r}
+source('../jma/jma_class_2.r')
+jma_data <- Jma$new(csv_f)
+allData <- jma_data$allData()
+allData
+# allData %>% filter(place=酒田) %>% group_by(start_m) %>% mutate(rain_month = sum(降水量_平年値 %>% as.character() %>% as.numeric()))
+```
+
+```{r}
+n_days <- 5
+result <- allData %>% mutate(group_id = (row_number() - 1) %/% n_days) %>% group_by(group_id) %>% mutate(降水量 = 降水量 %>% as.numeric) %>% mutate(降水量_平年値 = 降水量_平年値 %>% as.numeric) %>% summarise(start_date = min(st_date),sum_rain = sum(降水量), sum_normrain = sum(降水量_平年値))
+```
+
+
+
+```{r 月平均気温}
+# title = '年間-'
+x_axis = 'start_date'
+y_axis1 = 'sum_rain'
+y_axis2 = 'sum_normrain'
+exp_y1 = as.name(y_axis1)
+exp_y2 = as.name(y_axis2)
+
+
+this_aes1 <- aes(x=.data[[x_axis]], y=.data[[y_axis1]])
+# this_aes <- aes(x=.data[[x_axis]], y=.data[[y_axis]], colour=place, group=place, linetype=place)
+g <- ggplot(data = result)
+g <- g + theme_set(theme_bw(base_size = 24, base_family='HiraKakuProN-W3'))
+# グラフ左上の方(0.1, 0.9)の位置に、凡例の左上(0,1)を
+# g <- g + theme(axis.text.x = element_text(vjust = 0.5, hjust = 1), legend.position.inside = c(0.05,0.95), legend.justification=c(0,1))
+# g <- g + theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust = 1))
+
+# g <- g + scale_x_discrete(limit = c('1月', '2月', '3月', '4月', '5月', '6月', '7月', '8月', '9月', '10月', '11月', '12月'))
+
+this_aes2 <- aes(x=.data[[x_axis]], y=.data[[y_axis2]])
+g <- g + geom_bar(mapping = this_aes2, stat = 'identity', fill = 'deepskyblue')
+g <- g + geom_bar(mapping = this_aes1, stat = 'identity', fill = 'orange', alpha = 0.6)
+g <- g + theme(axis.text = element_text(color = "black"), axis.title.x = element_blank())
+g <- g + labs(title = "酒田の降水量 平年値との比較 " %>% str_c(csv_f_name, "年"),
+       # x = "月",
+       y = "5日ごと降水量積算値"
+       )
+# y軸を0に -> y軸を0-にして、パディングを下0(つまりy軸が0)、上10％とる
+g <- g + scale_y_continuous(limits = c(0, 320), expand = expansion(mult = c(0, 0.05)))
+# g <- g + scale_y_continuous(limits = c(0, NA), expand = expansion(mult = c(0, 0.1)))
+# g <- g + scale_x_continuous(limits = c('2024-01-01' %>% as.Date %>% as.numeric, '2024-12-30' %>% as.Date %>% as.numeric))
+d1 <- csv_f_name %>% str_c("-01-01")
+d2 <- csv_f_name %>% str_c("-12-31")
+g <- g + scale_x_date(
+  date_breaks = "1 month", # 1ヶ月ごと
+  limits = c(as.Date(d1),as.Date(d2)),
+  expand = expansion(mult = c(0.01, 0)),
+  date_labels = "%B") # 月名を日本語表記
+  # date_labels = "%m")
+g
+pdf_width = 16
+pdf_height = 9
+```
+
+```{r}
+# g <- g + geom_point(mapping = this_aes, size = 3, shape = 16, solid = TRUE)
+# g <- g + scale_linetype_manual(values = c('にかほ'='dashed', '札幌'='dotted', '山形'='dotted', '酒田'='dashed', '飛島'='solid'))
+# g <- g + scale_x_discrete(name = '月', labels = 1:12, limits = 1:12)
+# g <- g + scale_y_continuous(name = '月平均気温 平年値(℃)')
+# g <- g + scale_color_hue(name = '')
+# g <- g + scale_linetype_manual(values = c('にかほ'='dotted', '酒田'='dotted', '飛島'='solid'), name = '')
+
+```
+
+
+```{r PDF保存, eval=FALSE, include=FALSE}
+pdf_file_name <-
+  str_c(
+    csv_f_name,
+    # '-',
+    # y_axis,
+    '.pdf'
+  )
+quartz(type = 'pdf', file = pdf_file_name, width = pdf_width, height = pdf_height)
+plot(g)
+dev.off()
+
+```
+
+```{r}
+eachMonthTotal <- f_long %>% summarise(total = sum(value, na.rm = TRUE), .by = c(name)) %>% mutate(totalPerYear = total/yearPeriod)
+
+
+```
+
+また、夏季の月平均気温が酒田より1〜1.5℃低い。
+
+
+
+```{r eval=FALSE, include=FALSE}
+# write.csv(eachThresholdData, file = "lowist.csv")
+```
+
